@@ -4,24 +4,44 @@
 void initializeLeds()
 {
 // see requirements for this function from leds.h
+
+pinMode(A2, OUTPUT);
+pinMode(A3, OUTPUT);
+pinMode(A4, OUTPUT);
+pinMode(A5, OUTPUT);
+
 }
 
 void setLed(byte ledNumber)
 {
-// see requirements for this function from leds.h
+int analogPin[] = {A2,A3,A4,A5};
 
+for(int i = 0; i<4; i++){
+  digitalWrite(analogPin[i], LOW);
+  }
+
+if (ledNumber >=0 && ledNumber<=3){
+  digitalWrite(analogPin[ledNumber], HIGH);
+  }
 }
 
 
 void clearAllLeds()
 {
-// see requirements for this function from leds.h
- 
+
+ int analogPin[] = {A2,A3,A4,A5};
+ for(int i = 0; i<4; i++){
+  digitalWrite(analogPin[i], LOW);
+  }
 }
 
 void setAllLeds()
 {
-// see requirements for this function from leds.h
+
+int analogPin[] = {A2,A3,A4,A5};
+for(int i = 0; i<4; i++){
+  digitalWrite(analogPin[i], HIGH);
+  }
 }
 
 
