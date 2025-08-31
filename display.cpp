@@ -5,7 +5,7 @@ int serialInput = 8;
 int outEnable = 9;
 int latchClock = 10;
 int shiftClock = 11;
-int reset = 12;
+int displayReset = 12;
 
 byte numerotBitteina[] = { // Taulukko binäärisenä numeroista segmenttinäytöille, Globaali taulukko
   0b00111111, // 0
@@ -26,10 +26,10 @@ pinMode(latchClock, OUTPUT);
 pinMode(shiftClock, OUTPUT);
 pinMode(serialInput, OUTPUT);
 pinMode(outEnable, OUTPUT);
-pinMode(reset, OUTPUT);
+pinMode(displayReset, OUTPUT);
 
-digitalWrite(reset, LOW); // Resetoidaan näytöt
-digitalWrite(reset, HIGH);
+digitalWrite(displayReset, LOW); // Resetoidaan näytöt
+digitalWrite(displayReset, HIGH);
 digitalWrite(outEnable, LOW); // Outputit aktiiviseksi
 
 
