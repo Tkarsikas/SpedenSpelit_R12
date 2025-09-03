@@ -15,16 +15,40 @@ void initButtonsAndButtonInterrupts(void)
 }
 
 ISR(PCINT2_vect) {
+
+if(millis()-lastPressTime > 80 && !buttonFlag){
+    for(int i=firstPin; i<=lastPin;i++){
+        if(digitalRead(i)==0){
+            buttonPressed = true;
+            buttonNumber = i - 2;
+       }
+    }
+  }
+}
+
+void pressedButton(){
+  if(buttonPressed){
+  buttonFlag=true;
+  buttonPressed =false;
+}
+
+if((millis()-lastPressTime) > 20 && buttonFlag){
+    buttonFlag=false;
+    lastPressTime=millis();
+
+  }
+delay(1);
+}
    /*
      Here you implement logic for handling
 	 interrupts from 2,3,4,5 pins for Game push buttons
 	 and for pin 6 for start Game push button.
    */
-   static byte portDMSK = 0b01111100; //0b01111100 seuraa D-portin pinnien statusta jatkuvasti
+   //static byte portDMSK = 0b01111100; //0b01111100 seuraa D-portin pinnien statusta jatkuvasti
   
    /*Kun joku nappi painetaan niin PIND tavussa muuttuu nappia vastaava bitti.
    xor-operaatiolla verrataan lähtötilannetta napin painallus hetkeen. jos muutosta ei tapahdu xor operaation tulos = b00000000 */
-   byte currentState = PIND;
+   /*byte currentState = PIND;
    byte changedBit = portDMSK ^ currentState; 
    int nappi=-1;
    if(changedBit){
@@ -76,4 +100,3 @@ ISR(PCINT2_vect) {
       }
     }*/
     
-}
