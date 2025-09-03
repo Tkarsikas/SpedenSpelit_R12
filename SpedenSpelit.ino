@@ -11,14 +11,16 @@ volatile bool newTimerInterrupt = false;  // for timer interrupt handler
 
 void setup()
 {
-  /*
-    Initialize here all modules
-  */
+  Serial.begin(9600);
+ initButtonsAndButtonInterrupts();
+ initializeLeds();
 }
 
 void loop()
 {
-  if(buttonNumber>=0)
+
+
+ /* if(buttonNumber>=0)
   {
      // start the game if buttonNumber == 4
      // check the game if 0<=buttonNumber<4
@@ -28,7 +30,7 @@ void loop()
   {
      // new random number must be generated
      // and corresponding let must be activated
-  }
+  }*/
 }
 
 void initializeTimer(void)
