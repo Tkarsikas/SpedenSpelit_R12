@@ -27,7 +27,7 @@ ISR(PCINT2_vect) {
    byte currentState = PIND;
    byte changedBit = portDMSK ^ currentState; 
    int nappi=-1;
-   //if(!currentState & portDMSK){
+   //if(!currentState & changedBit){
     for(int i =2; i<=6; i++){
       if(bitRead(changedBit, i) && (!bitRead(currentState, i))){
             Serial.print("nappi ");
@@ -36,7 +36,7 @@ ISR(PCINT2_vect) {
             Serial.println(". painettu");
       }
     }
-   //}
+   
    
    /*if(changedBit & 0b00000100 ){ // jos 1. nappi painettu changedBit=0b00000100 -> 0b00000100 and 0b00000100 = 1 eli true
      if(!(PIND & 0b00000100 )){
