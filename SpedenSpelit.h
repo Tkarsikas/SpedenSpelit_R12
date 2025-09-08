@@ -43,5 +43,8 @@ void checkGame(byte);
 */
 void startTheGame(void);
 
+void addToButtonBuffer(int a);
+void addToLedBuffer(int a);
+
 
 #endif

@@ -11,6 +11,10 @@ extern volatile int buttonNumber;
 extern volatile unsigned long lastPressTime;
 extern volatile bool buttonPressed;
 extern volatile bool buttonFlag;
+extern volatile int pressedButton;
+
+
+
 
 /* 
   initButtonsAndButtonInterrupts subroutine is called from Setup() function
@@ -26,5 +30,8 @@ void initButtonsAndButtonInterrupts(void);
 
 // Intoduce PCINT2_vect Interrupt SeRvice (ISR) function for Pin Change Interrupt.
 ISR(PCINT2_vect); 
-void pressedButton(void);
+
+int getPressedButton(void);
+
+
 #endif;

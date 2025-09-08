@@ -1,6 +1,12 @@
 #include "buttons.h"
+//#define deBounceTime 100
 
+// tallenn ledi ja buttoni tiedot taulukkoon joita vertaillaan 
 
+volatile int pressedButton=-1;
+volatile unsigned long lastPressTime = 0;
+volatile bool buttonPressed = false;
+volatile bool buttonFlag=false;
 
 
 void initButtonsAndButtonInterrupts(void)
@@ -12,33 +18,77 @@ void initButtonsAndButtonInterrupts(void)
   }
   PCICR |= 0b00000100; //enable pcmsk2 eli pinnit 0-7 voi tehdä keskeytyksen
   PCMSK2 |= 0b01111100; //seuraa pinnejä 2-6
+   //seuraa pinnejä 2-6
+   interrupts();
 }
 
-ISR(PCINT2_vect) {
+ISR(PCINT2_vect) 
+{
+if(millis() - lastPressTime > 20 && buttonPressed==false && pressedButton==-1){
+    for(int i=firstPin; i<=lastPin;i++){
+        if(digitalRead(i)==0){
+            buttonPressed = true;
+            buttonFlag=true;
+            pressedButton = i - 2;
+            lastPressTime=millis();
+            break;
+       }
+    }
+  }
 
-if(millis()-lastPressTime > 80 && !buttonFlag){
+  if(millis() - lastPressTime > 20 && buttonPressed == true){
+    lastPressTime=millis();
+    buttonPressed=false;
+    pressedButton=-1;
+  }
+}
+
+
+int getPressedButton()
+{
+if(buttonFlag==true && buttonPressed==true){
+buttonFlag=false;
+return pressedButton;
+  } 
+return -1;
+}
+
+
+
+/*void buttonDeBounce(){
+
+  if(buttonPressed){
+  buttonFlag=true;
+  buttonPressed =false;
+  }
+
+if(millis()-lastPressTime > 100 && buttonFlag){
+    buttonFlag=false;
+
+Serial.println(buttonNumber);
+buttonNumber=-1;
+  }
+  
+delay(1);
+}
+if(millis()-lastPressTime > 10 && buttonFlag==false && buttonNumber==-1){
     for(int i=firstPin; i<=lastPin;i++){
         if(digitalRead(i)==0){
             buttonPressed = true;
             buttonNumber = i - 2;
+        lastPressTime=millis();
        }
     }
   }
-}
-
-void pressedButton(){
-  if(buttonPressed){
-  buttonFlag=true;
-  buttonPressed =false;
-}
-
-if((millis()-lastPressTime) > 20 && buttonFlag){
-    buttonFlag=false;
+  if(millis() - lastPressTime > 10 && buttonFlag == true){
     lastPressTime=millis();
-
+    buttonPressed=false;
   }
-delay(1);
+
 }
+*/
+
+
    /*
      Here you implement logic for handling
 	 interrupts from 2,3,4,5 pins for Game push buttons
