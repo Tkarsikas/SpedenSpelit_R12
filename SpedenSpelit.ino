@@ -20,6 +20,7 @@ volatile bool newTimerInterrupt = false;  // for timer interrupt handler
 
 volatile long s;
 volatile long ss;
+volatile int time = 10;
 
 void setup()
 {
@@ -37,6 +38,7 @@ buttonNumber=getPressedButton();
   if(buttonNumber>=0)
   {
 addToButtonBuffer(buttonNumber);
+checkGame();
   }
 
   if(newTimerInterrupt == true)
@@ -45,12 +47,10 @@ addToButtonBuffer(buttonNumber);
      // and corresponding led must be activated
      newTimerInterrupt=false;
      randomLedNumber=random(0,4);
+     clearAllLeds();
+     delay(30);
      setLed(leds[randomLedNumber]);
      addToLedBuffer(randomLedNumber);
-  for(int i =0; i<11;i++){
-    Serial.println(ledBuffer[i]);
-  }
-  Serial.println();
   }
 }
 
@@ -90,13 +90,15 @@ ISR(TIMER1_COMPA_vect)
   Communicate to loop() that it's time to make new random number.
   Increase timer interrupt rate after 10 interrupts.
   */
+  
 ss++;
-if(ss==30){
+if(ss==time){
   ss=0;
   s++;
   newTimerInterrupt=true;
-}if(s==60){
+}if(s==10){
   s=0;
+  time -= (time*0,1);
 }
  /* Serial.print(s);
   Serial.print(" : ");
@@ -105,7 +107,7 @@ if(ss==30){
 }
 
 
-void checkGame(int nbrOfButtonPush)
+void checkGame(int index)
 {
 	// see requirements for the function from SpedenSpelit.h  
   //Serial.println(nbrOfButtonPush);
