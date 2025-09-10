@@ -7,9 +7,9 @@
 // Use these 2 volatile variables for communicating between
 // loop() function and interrupt handlers
 volatile int buttonNumber = -1;           // for buttons interrupt handler
-int buttonBuffer[bufferSize];
+int buttonBuffer[bufferSize]={0};
 
-int ledBuffer[bufferSize];
+int ledBuffer[bufferSize]={0};
 int leds[]={0,1,2,3};
 int score=0;
 int randomLedNumber;
@@ -34,12 +34,12 @@ void setup()
 
 void loop()
 {
-buttonNumber=getPressedButton();
-  if(buttonNumber>=0)
+  if(pressedButton>=0 && pressedButton <=3)
   {
+buttonNumber=getPressedButton();
 addToButtonBuffer(buttonNumber);
-checkGame();
   }
+checkGame(bufferIndexButton);
 
   if(newTimerInterrupt == true)
   {
@@ -57,7 +57,6 @@ checkGame();
 void addToButtonBuffer(int a){
   buttonBuffer[bufferIndexButton]=a;
   bufferIndexButton++;
-
   if(bufferIndexButton==bufferSize){
     bufferIndexButton=0;
   }
@@ -111,24 +110,26 @@ void checkGame(int index)
 {
 	// see requirements for the function from SpedenSpelit.h  
   //Serial.println(nbrOfButtonPush);
-  //Serial.println(randomLedNumber);
-      if(randomLedNumber == nbrOfButtonPush){
+  index+=1;
+  Serial.println(ledBuffer[index]);
+  Serial.println(buttonBuffer[index]);
+      /*if(ledBuffer[index] == buttonBuffer[index]){
         score++;
        // Serial.print("sait pisteen");
-        //Serial.println(score);
 
       
-      }if(randomLedNumber != nbrOfButtonPush){
+      }if(ledBuffer[index] != buttonBuffer[index]){
       Serial.print("väärin peli ohi");
+        Serial.println(score);
       while(digitalRead(6)==1){
 
       }
-    
+    startTheGame();
      // start the game if buttonNumber == 4
      // check the game if 0<=buttonNumber<4
     //Serial.println(nbrOfButtonPush);
-    
   }
+    */
 }
 
 
