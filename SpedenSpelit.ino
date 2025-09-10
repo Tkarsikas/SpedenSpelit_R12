@@ -15,6 +15,7 @@ int score=0;
 int randomLedNumber;
 int bufferIndexButton=0;
 int bufferIndexLed=0;
+int compareIndex=0;
 
 volatile bool newTimerInterrupt = false;  // for timer interrupt handler
 
@@ -34,12 +35,18 @@ void setup()
 
 void loop()
 {
-  if(pressedButton>=0 && pressedButton <=3)
+ 
+  if(pressedButton>-1 && pressedButton<4)
   {
-buttonNumber=getPressedButton();
-addToButtonBuffer(buttonNumber);
+  buttonNumber=pressedButton;
+  pressedButton= -2;
+  addToButtonBuffer(buttonNumber);
+  checkGame(compareIndex);
+  compareIndex+=1;
+  if(compareIndex==10){
+    compareIndex=0;
   }
-checkGame(bufferIndexButton);
+  }
 
   if(newTimerInterrupt == true)
   {
@@ -47,10 +54,10 @@ checkGame(bufferIndexButton);
      // and corresponding led must be activated
      newTimerInterrupt=false;
      randomLedNumber=random(0,4);
+     addToLedBuffer(randomLedNumber);
      clearAllLeds();
      delay(30);
      setLed(leds[randomLedNumber]);
-     addToLedBuffer(randomLedNumber);
   }
 }
 
@@ -110,26 +117,41 @@ void checkGame(int index)
 {
 	// see requirements for the function from SpedenSpelit.h  
   //Serial.println(nbrOfButtonPush);
-  index+=1;
-  Serial.println(ledBuffer[index]);
-  Serial.println(buttonBuffer[index]);
-      /*if(ledBuffer[index] == buttonBuffer[index]){
+       
+     
+      if(ledBuffer[index] == buttonBuffer[index]){
         score++;
-       // Serial.print("sait pisteen");
+       Serial.println(score);
+        
+     
 
       
       }if(ledBuffer[index] != buttonBuffer[index]){
-      Serial.print("väärin peli ohi");
+           
+      
+      
+      Serial.println("väärin peli ohi");
+      Serial.print("pisteet : ");
         Serial.println(score);
+        Serial.println("aloite peli uudelleen");
       while(digitalRead(6)==1){
 
       }
+      for(int i =0; i<2; i++){
+      setAllLeds();
+      delay(300);
+      clearAllLeds();
+      delay(300);
+      }
+      delay(500);
     startTheGame();
      // start the game if buttonNumber == 4
      // check the game if 0<=buttonNumber<4
     //Serial.println(nbrOfButtonPush);
+  
   }
-    */
+      
+    
 }
 
 
@@ -138,16 +160,18 @@ void initializeGame()
 	// see requirements for the function from SpedenSpelit.h
   int min=0;
   int max=4;
- randomLedNumber=random(min,max);
+  randomLedNumber=random(min,max);
+  time=10;
+  score=0;
 
 }
 
 void startTheGame()
 {
    // see requirements for the function from SpedenSpelit.h
-    TIMSK1 |= 0b00000010;
+    TIMSK1 |= 0b00000010; //enable button interrupts
   interrupts();
 initializeGame();
-
+randomSeed(analogRead(A0));
 }
 

@@ -10,7 +10,6 @@ const byte lastPin =  6; // Last PinChangeInterrupt on D-bus
 extern volatile int buttonNumber;
 extern volatile unsigned long lastPressTime;
 extern volatile bool buttonPressed;
-extern volatile bool buttonFlag;
 extern volatile int pressedButton;
 
 

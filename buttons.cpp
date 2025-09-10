@@ -6,7 +6,7 @@
 volatile int pressedButton=-1;
 volatile unsigned long lastPressTime = 0;
 volatile bool buttonPressed = false;
-volatile bool buttonFlag=false;
+
 
 
 void initButtonsAndButtonInterrupts(void)
@@ -24,11 +24,10 @@ void initButtonsAndButtonInterrupts(void)
 
 ISR(PCINT2_vect) 
 {
-if(millis() - lastPressTime > 20 && buttonPressed==false && pressedButton==-1){ // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
+if(millis() - lastPressTime > 10 && buttonPressed==false && pressedButton==-1){ // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
     for(int i=firstPin; i<=lastPin;i++){
-        if(digitalRead(i)==0){                                                   //luetaan kaikki pinnit ja jos joku pinneistä 0 niin edetään
+        while(digitalRead(i)==0){                                                   //luetaan kaikki pinnit ja jos joku pinneistä 0 niin edetään
             buttonPressed = true;
-            buttonFlag=true;
             pressedButton = i - 2;
             lastPressTime=millis();
             break;
@@ -36,7 +35,7 @@ if(millis() - lastPressTime > 20 && buttonPressed==false && pressedButton==-1){ 
     }
   }
 
-  if(millis() - lastPressTime > 20 && buttonPressed == true){                   //kun nappi nostetaan tehdään myös debounce
+  if(millis() - lastPressTime > 10 && buttonPressed == true){                   //kun nappi nostetaan tehdään myös debounce
     lastPressTime=millis();
     buttonPressed=false;
     pressedButton=-1;
@@ -46,11 +45,12 @@ if(millis() - lastPressTime > 20 && buttonPressed==false && pressedButton==-1){ 
 
 int getPressedButton()                  
 {
-if(buttonFlag==true && buttonPressed==true){
-buttonFlag=false;
+if(buttonPressed==true){
 return pressedButton;
-  } 
+  } else{
+pressedButton= -2;
 return -1;
+  }
 }
 
 
