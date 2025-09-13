@@ -5,9 +5,9 @@
 #include <avr/interrupt.h>
 
 
-const byte firstPin = 2; // First PinChangeInterrupt on D-bus
-const byte lastPin =  6; // Last PinChangeInterrupt on D-bus
-extern volatile int buttonNumber;
+const byte firstPin = 2;    // First PinChangeInterrupt on D-bus
+const byte lastPin =  6;    // Last PinChangeInterrupt on D-bus
+extern volatile int buttonNumber;      
 extern volatile unsigned long lastPressTime;
 extern volatile bool buttonPressed;
 extern volatile int pressedButton;
@@ -30,7 +30,7 @@ void initButtonsAndButtonInterrupts(void);
 // Intoduce PCINT2_vect Interrupt SeRvice (ISR) function for Pin Change Interrupt.
 ISR(PCINT2_vect); 
 
-int getPressedButton(void);
+//int getPressedButton(void);
 
 
 #endif;

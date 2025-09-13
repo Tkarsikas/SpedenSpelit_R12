@@ -3,6 +3,7 @@
 #include <arduino.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <EEPROM.h>
 
 /*
   initializeTimer() subroutine intializes Arduino Timer1 module to
@@ -43,8 +44,16 @@ void checkGame(byte);
 */
 void startTheGame(void);
 
+/*
+funktiot joilla voidaan lisätä bufferi taulukoihin 
+uusia arvoja
+*/
 void addToButtonBuffer(int a);
 void addToLedBuffer(int a);
 
+/*
+Funktio jossa käsitellään ajastimen nopeutus
+*/
+void handleTimerSpeedUp(void);
 
 #endif

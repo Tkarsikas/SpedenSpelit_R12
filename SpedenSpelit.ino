@@ -2,176 +2,175 @@
 #include "buttons.h"
 #include "leds.h"
 #include "SpedenSpelit.h"
-#define bufferSize 10
+#define bufferSize 10                     //Voidaan muuttaa nappien ja ledien taulukon kokoa
 
-// Use these 2 volatile variables for communicating between
-// loop() function and interrupt handlers
+
 volatile int buttonNumber = -1;           // for buttons interrupt handler
-int buttonBuffer[bufferSize]={0};
+int buttonBuffer[bufferSize]={0};         //nappien arvojen taulukko
+int bufferIndexButton=0;                  //nappien arvojen tallentamiseen oikeaan soluun
 
-int ledBuffer[bufferSize]={0};
-int leds[]={0,1,2,3};
-int score=0;
-int randomLedNumber;
-int bufferIndexButton=0;
-int bufferIndexLed=0;
-int compareIndex=0;
+
+int ledBuffer[bufferSize]={0};            //ledien arvojen taulukko
+int leds[]={0,1,2,3};                     //ledi järjestysnumerot tallennettu
+int bufferIndexLed=0;                     //ledi taulukkoon tallentaminen oikeaan soluun
+int randomLedNumber;                      //ledin sytyttämiseen 
+int compareIndex=0;                       //taulukon arvojen vertailuun
+int score=0;                              //pisteiden laskentaan
+int highScore=0;
 
 volatile bool newTimerInterrupt = false;  // for timer interrupt handler
+volatile long timerValue=0;               //OCR1A arvon tallentamiseen
 
-volatile long s;
-volatile long ss;
-volatile int time = 10;
-
+int ss=0;
 void setup()
 {
-  Serial.begin(9600);
-  initializeTimer();
-  initButtonsAndButtonInterrupts();
-  initializeLeds();
-  startTheGame();
+  Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
+  initializeTimer();                    //alustetaan timer1 tekemään keskeytyksiä 1hz
+  initButtonsAndButtonInterrupts();     //alustetaan nappi keskeytykset
+  initializeLeds();                     //alustetaan ledi ohjaus              
+  startTheGame();                       //alustetaan peli
 
 }
 
 void loop()
 {
- 
+ if(pressedButton==4){                  //jos pelaaja painaa pelin aloitus nappia kesken pelin niin se nollataan ettei tule bugeja
+  pressedButton=-2;
+ }
   if(pressedButton>-1 && pressedButton<4)
   {
-  buttonNumber=pressedButton;
-  pressedButton= -2;
-  addToButtonBuffer(buttonNumber);
-  checkGame(compareIndex);
-  compareIndex+=1;
-  if(compareIndex==10){
+  buttonNumber=pressedButton;           //tallennetaan painettu nappi toiseen muuttujaan
+  pressedButton= -2;                    //muutetaan muuttujan arvo siten että seuraava keskeytys käy napin noston läpi, jotta seuraava painallus toimii oikein
+  addToButtonBuffer(buttonNumber);      //lisätään napin arvo taulukkoon
+  checkGame(compareIndex);              //tarkistetaan pelin tila menikö napin painallus oikein
+  Serial.println(compareIndex);     
+  if(compareIndex==bufferSize){                 //nollataan muuttuja koska taulukossa ei ole kuin 10 arvoa
     compareIndex=0;
   }
   }
 
   if(newTimerInterrupt == true)
   {
-     // new random number must be generated
-     // and corresponding led must be activated
-     newTimerInterrupt=false;
-     randomLedNumber=random(0,4);
-     addToLedBuffer(randomLedNumber);
-     clearAllLeds();
-     delay(30);
-     setLed(leds[randomLedNumber]);
+     newTimerInterrupt=false;           //aikakeskeytys käsitelty
+     clearAllLeds();                    //sammutetaan kaikki ledit jotta pelaaja huomaa ledin vaihtuneen
+     delay(30);                         //odotellaan hetki jotta sammutus huomataan
+     randomLedNumber=random(0,4);       //arvotaan uusi ledin arvo
+     addToLedBuffer(randomLedNumber);   //lisätään arvottu ledin arvo taulukkoon
+     Serial.println("ledi tallennettu");  
+     setLed(leds[randomLedNumber]);     //sytytetään uusi ledi
+
+    handleTimerSpeedUp();
   }
 }
+void handleTimerSpeedUp(void){
+     ss++;                              //Lisätään muuttujan arvoon 1 jokaisella timer keskeytyksellä
+  if(ss==10){                           //kun muuttuja on 10 
+  ss=0;                                 //nollataan muuttuja
 
+  timerValue-=timerValue*0.1;           //vähennetään timerValuesta 10%
+  OCR1A=timerValue;                     //asetetaan OCR1A arvoksi 10% vähemmän jotta peli nopeutuu
+}
+}
 void addToButtonBuffer(int a){
-  buttonBuffer[bufferIndexButton]=a;
-  bufferIndexButton++;
-  if(bufferIndexButton==bufferSize){
-    bufferIndexButton=0;
+  buttonBuffer[bufferIndexButton]=a;    //asetetaan parametrinä annettu arvo taulukkoon
+  bufferIndexButton++;                  //lisätään indexi muuttujaan 1 jotta seuraava arvo tallentuu seuraavaan alkioon
+
+  if(bufferIndexButton==bufferSize){    //kun indexi on yhtä suuri kuin bufferin koko, nollataan indeksi arvo
+    bufferIndexButton=0;                //tämän jälkeen ylikirjoitetaan aiemmin tallennettuja alkioita
   }
 }
 
 void addToLedBuffer(int a){
-  ledBuffer[bufferIndexLed]=a;
-  bufferIndexLed++;
+  ledBuffer[bufferIndexLed]=a;          //asetetaan parametrinä annettu arvo taulukkoon
+  bufferIndexLed++;                     //lisätään indexi muuttujaan 1 jotta seuraava arvo tallentuu seuraavaan alkioon
 
-  if(bufferIndexLed==bufferSize){
-    bufferIndexLed=0;
+  if(bufferIndexLed==bufferSize){       //kun indexi on yhtä suuri kuin bufferin koko, nollataan indeksi arvo
+    bufferIndexLed=0;                   //tämän jälkeen ylikirjoitetaan aiemmin tallennettuja alkioita
   }
 }
 
 void initializeTimer(void)
 {
-	// see requirements for the function from SpedenSpelit.h
-  byte maski = 0b00001000;
-  TCCR1A = 0;
-  TCCR1B |= 0b00001011;
-  OCR1A = 25000;
- 
+  timerValue=15624;         //(16*10^6)/(1024*1.0)-1 Laskettu prescaler arvon mukaan niin että keskeytys 1hz taajuudella
+  TCCR1A = 0;               //alustetaan timer 1 A rekisteri
+  TCCR1B = 0;               //alustetaan timer 1 B rekisteri
+  TCCR1B |= 0b00001101;     // prescaler 1024 ja CTC (clear timer on compare match) moodi enabloitu 
+  TIMSK1 |= 0b00000010;     //enable timer1 interrupts
+  interrupts();             //aktivoidaan keskeytykset
 
-  s=0;
-  ss=0;
 }
+
 ISR(TIMER1_COMPA_vect)
 {
-  /*
-  Communicate to loop() that it's time to make new random number.
-  Increase timer interrupt rate after 10 interrupts.
-  */
-  
-ss++;
-if(ss==time){
-  ss=0;
-  s++;
-  newTimerInterrupt=true;
-}if(s==10){
-  s=0;
-  time -= (time*0,1);
-}
- /* Serial.print(s);
-  Serial.print(" : ");
-  Serial.println(ss);
-*/
+newTimerInterrupt=true;         //uusi timer keskeytys joka käsitellään pää loopissa
 }
 
 
 void checkGame(int index)
 {
-	// see requirements for the function from SpedenSpelit.h  
-  //Serial.println(nbrOfButtonPush);
-       
-     
-      if(ledBuffer[index] == buttonBuffer[index]){
-        score++;
-       Serial.println(score);
-        
-     
-
-      
-      }if(ledBuffer[index] != buttonBuffer[index]){
-           
-      
-      
-      Serial.println("väärin peli ohi");
+ 
+      if(ledBuffer[index] == buttonBuffer[index]){  // vertaillaan onko painettu nappi oikein
+        score++;                                    //annetaan piste
+       Serial.print("indeksissä oikein ");
+       Serial.println(index);
+          compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
+      }if(ledBuffer[index] != buttonBuffer[index]){ //Vertaillaan jos painettu nappi meni väärin
+          compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
+      TIMSK1 = 0;                                   //pysäytetään timer
+      Serial.println("väärin peli ohi");            //kerrotaan pelaajalle että meni väärin
       Serial.print("pisteet : ");
+      Serial.println(score);
+      Serial.println("aloite peli uudelleen");     
+      clearAllLeds();                               //sammutetaan ledit
+      
+      EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
+      if(highScore < score){                        //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
+        Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
         Serial.println(score);
-        Serial.println("aloite peli uudelleen");
-      while(digitalRead(6)==1){
+      EEPROM.put(0,score);
+      }
+      Serial.print("pisteesi ei riittänyt uuteen ennätykseen, aiempi ennätys: ");
+      Serial.println(highScore);                    //kerrotaan pelaajalle jos ei tullut uutta ennätystä
+      while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
 
       }
-      for(int i =0; i<2; i++){
+      for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
       setAllLeds();
       delay(300);
       clearAllLeds();
       delay(300);
       }
-      delay(500);
-    startTheGame();
-     // start the game if buttonNumber == 4
-     // check the game if 0<=buttonNumber<4
-    //Serial.println(nbrOfButtonPush);
+    startTheGame();                                 //alustetaan peli uudestaan
+  delay(1000);                                      
+  TCNT1=0;                                          //nollataan timer1 ajastimen arvo
+  TIMSK1 |= 0b00000010;                             //käynnistetään timer1
   
   }
-      
-    
 }
 
 
 void initializeGame()
 {
-	// see requirements for the function from SpedenSpelit.h
-  int min=0;
-  int max=4;
-  randomLedNumber=random(min,max);
-  time=10;
-  score=0;
+  score=0;                          //nollataan pisteet
+  timerValue=15624;                 //määritellään timer keskeytys 1hz taajuudelle 
+  ss=0;
+  for(int i=0; i<bufferSize; i++){
+  buttonBuffer[i]=0;                //nollataan button bufferi
+  ledBuffer[i]=0;                   //nollataan ledi bufferi
+  }
+  bufferIndexLed=0;                 //ledi taulukkoon tallentaminen oikeaan soluun
+  bufferIndexButton=0;              //button taulukkoon tallentaminen oikeaan soluun
+  compareIndex=0;                   //taulukon arvojen vertailuun
+  
+  newTimerInterrupt=false;          //alustetaan timer keskeytys lippu
+  pressedButton=-1;                 //alustetaan napin arvo
+  OCR1A = timerValue;               //timer1 vertailu arvoksi tallennetaan aluksi 15624
+  clearAllLeds();
 
 }
 
 void startTheGame()
 {
-   // see requirements for the function from SpedenSpelit.h
-    TIMSK1 |= 0b00000010; //enable button interrupts
-  interrupts();
-initializeGame();
-randomSeed(analogRead(A0));
+initializeGame();                   //alustetaan peli
+randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
 }
-
