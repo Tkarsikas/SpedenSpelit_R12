@@ -22,21 +22,21 @@ volatile bool newTimerInterrupt = false;  // for timer interrupt handler
 volatile long timerValue=0;               //OCR1A arvon tallentamiseen
 
 int ss=0;
-int melody[]={262, 294, 330, 349};
+
 void setup()
 {
   Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
   initializeDisplay();
-  initializeTimer();                    //alustetaan timer1 tekemään keskeytyksiä 1hz
   initButtonsAndButtonInterrupts();     //alustetaan nappi keskeytykset
   initializeLeds();                     //alustetaan ledi ohjaus              
+  initBuzzer();
+  initializeTimer();                    //alustetaan timer1 tekemään keskeytyksiä 1hz
   startTheGame();                       //alustetaan peli
-pinMode(A0, OUTPUT);
 }
 
 void loop()
 {
- /* for(int i=0; i<4; i++){
+ /*for(int i=0; i<12; i++){
   tone(A0, melody[i], 200);
   delay(500);
 }*/
@@ -124,39 +124,30 @@ void checkGame(int index)
        Serial.println(index);
           compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
       }if(ledBuffer[index] != buttonBuffer[index]){ //Vertaillaan jos painettu nappi meni väärin
-          compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
+      compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
       TIMSK1 = 0;                                   //pysäytetään timer
       Serial.println("väärin, peli ohi");            //kerrotaan pelaajalle että meni väärin
       Serial.print("pisteet : ");
       Serial.println(score);
-      Serial.println("aloite peli uudelleen");     
+      Serial.println("aloite peli uudelleen");
+      setAllLeds();
+      tone(A0,100,1500);                            //väläytetään ledejä ja äänimerkki että peli päättyi
+      delay(500); 
       clearAllLeds();                               //sammutetaan ledit
+  
       
-      EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
       if(highScore < score){                        //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
+        playTone(5);
         EEPROM.put(0,score);
         Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
         Serial.println(score);
       }
       Serial.print("pisteesi ei riittänyt uuteen ennätykseen, aiempi ennätys: ");
       Serial.println(highScore);                    //kerrotaan pelaajalle jos ei tullut uutta ennätystä
-      while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
-      showResult(score);
-      delay(1000);
-      showResult(highScore);
-      delay(1000);
-      }
-      for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
-      setAllLeds();
-      delay(300);
-      clearAllLeds();
-      delay(300);
-      }
-    startTheGame();                                 //alustetaan peli uudestaan
-  //delay(1000);                                      
-  TCNT1=0;                                          //nollataan timer1 ajastimen arvo
-  TIMSK1 |= 0b00000010;                             //käynnistetään timer1
-  
+
+
+    startTheGame();                                 //alustetaan peli uudestaan                                     
+
   }
 }
 
@@ -183,6 +174,26 @@ void initializeGame()
 
 void startTheGame()
 {
+
 initializeGame();                   //alustetaan peli
 randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
+EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
+
+      while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
+      playTone(4);
+      showResult(highScore);
+      delay(1000);
+      showResult(score);
+      delay(1000);
+      }
+
+      for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
+      setAllLeds();
+      delay(300);
+      clearAllLeds();
+      delay(300);
+      }
+  TCNT1=0;                                          //nollataan timer1 ajastimen arvo
+  TIMSK1 |= 0b00000010;                             //käynnistetään timer1
+  
 }
