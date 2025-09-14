@@ -28,7 +28,7 @@ void initButtonsAndButtonInterrupts(void)
 ISR(PCINT2_vect) 
 {
 if(millis() - lastPressTime > 10 &&  
-    buttonPressed==false && pressedButton==-1){    // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
+    buttonPressed==false){    // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
     for(int i=firstPin; i<=lastPin;i++){
         while(digitalRead(i)==0){                  //luetaan kaikki pinnit ja jos joku pinneistä 0 niin edetään
             buttonPressed = true;                  //asetetaan napin painallus tila true
