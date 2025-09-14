@@ -1,6 +1,11 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 #include <arduino.h>
+extern const int reset;
+extern const int shiftClock;
+extern const int latchClock;
+extern const int outEnable;
+extern const int serialInput;
 
 
 /*

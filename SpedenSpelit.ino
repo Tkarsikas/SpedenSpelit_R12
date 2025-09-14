@@ -22,20 +22,27 @@ volatile bool newTimerInterrupt = false;  // for timer interrupt handler
 volatile long timerValue=0;               //OCR1A arvon tallentamiseen
 
 int ss=0;
+int melody[]={262, 294, 330, 349};
 void setup()
 {
   Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
+  initializeDisplay();
   initializeTimer();                    //alustetaan timer1 tekemään keskeytyksiä 1hz
   initButtonsAndButtonInterrupts();     //alustetaan nappi keskeytykset
   initializeLeds();                     //alustetaan ledi ohjaus              
   startTheGame();                       //alustetaan peli
-
+pinMode(A0, OUTPUT);
 }
 
 void loop()
 {
+ /* for(int i=0; i<4; i++){
+  tone(A0, melody[i], 200);
+  delay(500);
+}*/
  if(pressedButton==4){                  //jos pelaaja painaa pelin aloitus nappia kesken pelin niin se nollataan ettei tule bugeja
   pressedButton=-2;
+  Serial.println("nappi nollattu");
  }
   if(pressedButton>-1 && pressedButton<4)
   {
@@ -94,7 +101,8 @@ void initializeTimer(void)
   timerValue=15624;         //(16*10^6)/(1024*1.0)-1 Laskettu prescaler arvon mukaan niin että keskeytys 1hz taajuudella
   TCCR1A = 0;               //alustetaan timer 1 A rekisteri
   TCCR1B = 0;               //alustetaan timer 1 B rekisteri
-  TCCR1B |= 0b00001101;     // prescaler 1024 ja CTC (clear timer on compare match) moodi enabloitu 
+  TCCR1B |= 0b00001101;     //prescaler 1024 (CS10 ja CS12 high) ja CTC (clear timer on compare match) (WGM12 high) moodi enabloitu 
+  TCNT1=0;                  //alustetaan ajastin
   TIMSK1 |= 0b00000010;     //enable timer1 interrupts
   interrupts();             //aktivoidaan keskeytykset
 
@@ -111,13 +119,14 @@ void checkGame(int index)
  
       if(ledBuffer[index] == buttonBuffer[index]){  // vertaillaan onko painettu nappi oikein
         score++;                                    //annetaan piste
+        showResult(score);
        Serial.print("indeksissä oikein ");
        Serial.println(index);
           compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
       }if(ledBuffer[index] != buttonBuffer[index]){ //Vertaillaan jos painettu nappi meni väärin
           compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
       TIMSK1 = 0;                                   //pysäytetään timer
-      Serial.println("väärin peli ohi");            //kerrotaan pelaajalle että meni väärin
+      Serial.println("väärin, peli ohi");            //kerrotaan pelaajalle että meni väärin
       Serial.print("pisteet : ");
       Serial.println(score);
       Serial.println("aloite peli uudelleen");     
@@ -125,14 +134,17 @@ void checkGame(int index)
       
       EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
       if(highScore < score){                        //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
+        EEPROM.put(0,score);
         Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
         Serial.println(score);
-      EEPROM.put(0,score);
       }
       Serial.print("pisteesi ei riittänyt uuteen ennätykseen, aiempi ennätys: ");
       Serial.println(highScore);                    //kerrotaan pelaajalle jos ei tullut uutta ennätystä
       while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
-
+      showResult(score);
+      delay(1000);
+      showResult(highScore);
+      delay(1000);
       }
       for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
       setAllLeds();
@@ -141,7 +153,7 @@ void checkGame(int index)
       delay(300);
       }
     startTheGame();                                 //alustetaan peli uudestaan
-  delay(1000);                                      
+  //delay(1000);                                      
   TCNT1=0;                                          //nollataan timer1 ajastimen arvo
   TIMSK1 |= 0b00000010;                             //käynnistetään timer1
   
