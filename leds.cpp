@@ -27,7 +27,8 @@ for(int i = 0; i<4; i++){
   }
 
 if (ledNumber >=0 && ledNumber<=3){         //tarkastetaan mikä ledi annettiin parametrinä  
-  digitalWrite(analogPin[ledNumber], HIGH); //sytytetään parametrinä annettu ledi
+  digitalWrite(analogPin[ledNumber], HIGH);  //sytytetään parametrinä annettu ledi
+  playTone(ledNumber);
   }
 }
 
@@ -61,22 +62,26 @@ for (int value =0; value < 16; value++){                  //käydään kaikki lu
   for(int led =0; led<4; led++){                          //käydään kaikki ledit läpi 
     digitalWrite(analogPin[led], (value >> led) & 0x01);  //bitin siirrolla asetetaan lukua vastaavasti bitit LOW tai HIGH
     //delay(50);                                          //esim value 10 >> led 0    0000 1010 siirretään bittejä 0 kertaa oikealle -> (0000 1010) AND 0000 0001 joten 0 led -> LOW  
-  }                                                       //esim value 10 >> led 1    0000 1010 siirretään bittejä 1 kertaa oikealle -> (0000 0101) AND 0000 0001 joten 1 led -> HIGH 
-  delay(500);                                             //esim value 10 >> led 2    0000 1010 siirretään bittejä 2 kertaa oikealle -> (0000 0010) AND 0000 0001 joten 2 led -> LOW 
-}                                                         //esim value 10 >> led 3    0000 1010 siirretään bittejä 3 kertaa oikealle -> (0000 0001) AND 0000 0001 joten 3 led -> HIGH
-}                                                         //palataan ensimmäiseen for looppiin ja käsitellään seuraava luku samalla tavalla
+    if((value >> led) & 0x01){                            //esim value 10 >> led 1    0000 1010 siirretään bittejä 1 kertaa oikealle -> (0000 0101) AND 0000 0001 joten 1 led -> HIGH 
+      playTone(led);                                      //esim value 10 >> led 2    0000 1010 siirretään bittejä 2 kertaa oikealle -> (0000 0010) AND 0000 0001 joten 2 led -> LOW              
+    }                                                     //esim value 10 >> led 3    0000 1010 siirretään bittejä 3 kertaa oikealle -> (0000 0001) AND 0000 0001 joten 3 led -> HIGH
+  }                                                       //palataan ensimmäiseen for looppiin ja käsitellään seuraava luku samalla tavalla
+  delay(500);                                              
+}                                                         
+}                                                         
 
 void show2(int rounds)
 {                                                         //käyttäjä syöttää luvun, kuinka monta sykliä haluaa ledejä välkytettävän
 int analogPin[] = {A2,A3,A4,A5};
 int minDelay =0;                                          //määritellään minimi delay
-int maxDelay =500;                                        //määritellään maximi delay
+int maxDelay =200;                                        //määritellään maximi delay
 int delayDecrease = (maxDelay/rounds)+50;                 //lasketaan parametrinä annettuun lukuun suhteutettuna kuinka monta sykliä ledejä välkytellään
 
 while(maxDelay>minDelay){                                 //niin kauan kun maximi delay on isompi kun minimi delay
  for(int led=0;led<4;led++){
-  digitalWrite(analogPin[led], HIGH);                     //sytytellään ja sammutellaan ledejä
-  delay(maxDelay);
+  digitalWrite(analogPin[led], HIGH);                     //sytytellään ja sammutellaan ledejä  
+  playTone(led);                                          //soitetaan lediä vastaava ääni                  
+  delay(maxDelay); 
     digitalWrite(analogPin[led], LOW);
     delay(maxDelay);
 
@@ -85,3 +90,55 @@ while(maxDelay>minDelay){                                 //niin kauan kun maxim
 
  }
 }
+
+void initBuzzer(){                                        //alustetaan summerin ohjaus pinni output
+  pinMode(A0, OUTPUT);
+}
+
+void playTone (byte ledNumber){                           //parametrinä ledin numero jota vastaava ääni toistetaan.
+  
+  int melody[] = {
+  523, 659, 784, 1047,   // C5, E5, G5, C6
+  988, 784, 880, 698,    // B5, G5, A5, F5
+  659, 523, 587, 784     // E5, C5, D5, G5
+};  
+int idleMelody[] = {523, 659, 784, 659, 587, 698, 880, 698};
+int fanfare[] = {
+  659,  // dind – korkea lyhyt nuotti
+  659, 880  // didiiiiii – nouseva nuottisarja
+};
+
+int durations[] = {
+  200,  // lyhyt dind
+  100, 1000   // nouseva sarja, viimeinen pitkä
+};                       
+  switch (ledNumber){
+    case 0:
+    tone(A0, 200,200);
+    break;
+    case 1: 
+    tone(A0, 400, 200);
+    break;
+    case 2:
+    tone(A0, 600, 200);
+    break;
+    case 3:
+    tone(A0, 800, 200);
+    break;
+    case 4:
+    for(int i=0; i<8;i++){
+      tone(A0,idleMelody[i],200);
+      delay(250);
+    }
+    break;
+    case 5:
+      for (int i = 0; i < 3; i++) {
+    tone(A0, fanfare[i], durations[i]);
+    delay(durations[i] + 50); // pieni tauko nuottien välillä
+    }
+    break;
+    default:
+    tone(A0,2000,200);
+    break;
+  }
+  }
