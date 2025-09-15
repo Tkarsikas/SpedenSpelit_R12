@@ -78,6 +78,7 @@ void handleTimerSpeedUp(void){
   OCR1A=timerValue;                     //asetetaan OCR1A arvoksi 10% vähemmän jotta peli nopeutuu
 }
 }
+
 void addToButtonBuffer(int a){
   buttonBuffer[bufferIndexButton]=a;    //asetetaan parametrinä annettu arvo taulukkoon
   bufferIndexButton++;                  //lisätään indexi muuttujaan 1 jotta seuraava arvo tallentuu seuraavaan alkioon
