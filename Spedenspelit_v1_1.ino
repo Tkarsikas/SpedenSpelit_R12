@@ -8,6 +8,7 @@
 volatile float timerinNopeus = 15624;      // Aloitusarvo 1Hz taajuudelle
 volatile int8_t buttonNumber = -1;           // for buttons interrupt handler
 volatile bool newTimerInterrupt = false;  // for timer interrupt handler
+volatile bool buttonPressed = false;
 volatile unsigned long interruptTimer = 0; // Ajastin, milloin nappia painetaan
 volatile byte score = 0; // Pistetilanteen tallennus
 volatile bool gameStatus = false; // Seurataan, onko peli aktiivinen vai ei
@@ -44,7 +45,10 @@ void loop() {
   }
 
   if (buttonNumber >= 0) {
-
+    // start the game if buttonNumber == 4
+    // check the game if 0<=buttonNumber<4
+    // Serial.print("Painettu nappi on ");
+    // Serial.println(buttonNumber);
     if (buttonNumber == 4) {
       initializeGame();
     }
@@ -52,9 +56,9 @@ void loop() {
     if (buttonNumber < 4 && buttonNumber >= 0 && gameStatus == true) {
       painetutNapit[painalluksenJarjestysNumero] = buttonNumber;
       checkGame(buttonNumber);
+      // summeri(buttonNumber);
     }
-
-    buttonNumber = -2;
+    buttonNumber = -1;
   }
 
   if (newTimerInterrupt == true) {
@@ -106,7 +110,6 @@ void initializeGame() {
   gameStatus = true; // Pelin status true-tilaan
   timerinNopeus = 15624; // Alusteaan ledin vilkkumis nopeus 1Hz taajuuteen
   // Nollataan taulukot
-  showResult(score);
   for (int i = 0; i < 30;i++) {
     arvotutLedit[i] = -1; // Alustetaan arvotutLedit-taulukko. Kaikki "-1"-arvoon
     painetutNapit[i] = -1; // Alustetaan painetutNapit-taulukko. Kaikki "-1"-arvoon
@@ -128,8 +131,11 @@ void initializeGame() {
       delay(150);
     }
   }
+
   initializeTimer(); // Kutsutaan aikakeskeyttimen alustamista
+
   Serial.println("----- GAME HAS STARTED -----");
+  showResult(score);
 }
 
 void initializeTimer() {
@@ -152,6 +158,18 @@ void checkGame(byte nbrOfButtonPush) {
   
   /* Vertailu, onko arvottu LED sekä napin painallus oikea. Jos on, 
   nostetaan pisteitä sekä painalluksen järjestysnumero sekä päivitetään pistenäyttö */
+  /*
+  Serial.print("Painettu nappi on: ");
+  Serial.println(buttonNumber);
+  Serial.print("Painalluksen järjestysnumero on: ");
+  Serial.println(painalluksenJarjestysNumero);
+  Serial.print("Pisteesi tällä hetkellä on: ");
+  Serial.println(score);
+  Serial.print("Napinpainallus taulukossa on: ");
+  Serial.println(painetutNapit[painalluksenJarjestysNumero]);
+  Serial.print("Arvottu LED taulukossa on: ");
+  Serial.println(arvotutLedit[painalluksenJarjestysNumero]);
+  */
   if (painetutNapit[painalluksenJarjestysNumero] == arvotutLedit[painalluksenJarjestysNumero]) {
     score++;
     painalluksenJarjestysNumero++;
@@ -194,6 +212,15 @@ ISR(TIMER1_COMPA_vect) {
   newTimerInterrupt = true; // Aikakeskeytyksessä päiviteään vain "aikalippu"
 }
 
+/*
+void gameBreak(void) {
+  showResult(score);
+  delay(1000);
+  showResult(highScore);
+  delay(1000);
+}
+*/
+
 void gameBreak(void) {
 
   unsigned long kesto = 10000;
@@ -207,9 +234,8 @@ void gameBreak(void) {
     showResult(highScore);
   }
 
-int musiikkiTaulukonKoko = 26;
   // Soitetun kappaleen taajuudet
-int savelienTaajuudet[musiikkiTaulukonKoko] = {
+int savelienTaajuudet[26] = {
   330, 294, 262, 294, 330,
   330, 330, 294, 294, 294,
   330, 392, 392, 330, 294,
@@ -218,7 +244,7 @@ int savelienTaajuudet[musiikkiTaulukonKoko] = {
   0};
 
   // Yksittäisten sävelen soinnin kesto
-  int savelienKestot[musiikkiTaulukonKoko] = {  
+  int savelienKestot[26] = {  
   450,150,300,300,300,
   300,300,300,300,300,
   300,300,300,450,150,
@@ -227,7 +253,7 @@ int savelienTaajuudet[musiikkiTaulukonKoko] = {
   1000};
 
   // Yksittäisten sävelien välit
-  int savelienValit[musiikkiTaulukonKoko] = {  
+  int savelienValit[26] = {  
   60,60,60,60,60,
   60,300,60,60,300,
   60,60,300,60,60,
@@ -238,7 +264,7 @@ int savelienTaajuudet[musiikkiTaulukonKoko] = {
   unsigned long musiikinTahdistus = millis() - breakTimer;
 
   int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
-  int savelienValienSummaus[musiikkiTaulukonKoko];
+  int savelienValienSummaus[26];
   int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);
   int summa = 0;
   for (int i = 0; i < taulukonKoko;i++) {
@@ -246,32 +272,106 @@ int savelienTaajuudet[musiikkiTaulukonKoko] = {
     savelienValienSummaus[i] = summa;
   }
 
- 
+/*
   if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
       tone(buzzerPin, savelienTaajuudet[savel], savelienKestot[savel]);
       savel++;
   } 
-  else if (musiikinTahdistus > savelienValienSummaus[savel - 1] && musiikinTahdistus < savelienValienSummaus[savel] && savel > 0 && savel < musiikkiTaulukonKoko - 1) {
+  else if (musiikinTahdistus > savelienValienSummaus[savel - 1] && musiikinTahdistus < savelienValienSummaus[savel] && savel > 0 && savel < 25) {
       tone(buzzerPin, savelienTaajuudet[savel], savelienKestot[savel]);
       savel++;
   } 
-  else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == musiikkiTaulukonKoko - 1) {
+  else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == 25) {
       savel = 0;
       breakTimer = millis();
   }
+  */
 }
 
 void summeri(byte led) {
   if (led == 0) {
-    tone(buzzerPin, 400,350);
+    tone(buzzerPin, 400,500);
   }
   if (led == 1) {
-    tone(buzzerPin, 600,350);
+    tone(buzzerPin, 600,500);
   }
   if (led == 2) {
-    tone(buzzerPin, 800,350);
+    tone(buzzerPin, 800,500);
   }
   if (led == 3) {
-    tone(buzzerPin, 900,350);
+    tone(buzzerPin, 900,500);
   }
 }
+
+// --- TÄHÄN PÄÄTTYY TOIMIVA PELI -- HUOM!! Kommentoinnint korjattava
+
+// NÄMÄ ON OMIA TESTAILUJA
+
+ /*
+  if (buttonNumber >= 0) {
+    Serial.print("Painettu nappi on ");
+    Serial.println(buttonNumber);
+    buttonNumber = -1;
+  } 
+}
+  /*
+  for (int i = 2; i <= 6;i++) {
+    digitalWrite(i, HIGH);
+  }
+  
+  
+  for (int i = 0; i < 20; i++) {
+    showResult(i);
+    delay(200);
+  }
+
+  int pin = firstPin;
+  for(int pin = 0; pin <= 3; pin++) {
+      setLed(pin);
+      delay(250);
+      Serial.print("Pinni päälle. Pinnin numero: ");
+      Serial.println(pin);
+    }
+  delay(500);
+  clearAllLeds();
+  delay(500);
+  setAllLeds();
+  delay(500);
+  clearAllLeds();
+  delay(500);
+
+  show1();
+  
+  show2(50);
+  
+  for (int i = 0; i < 16; i++) {
+    showResult(i);
+    int jaannos = i;
+    if (jaannos >= 8 ) {
+      jaannos = jaannos - 8;
+      setLed(0);
+    }
+    if (jaannos >= 4) {
+      jaannos = jaannos - 4;
+      setLed(1);
+    }
+    if (jaannos >= 2) {
+      jaannos = jaannos - 2;
+      setLed(2);
+    }
+    if (jaannos >= 1) {
+      setLed(3);
+    }
+    delay(800);
+    clearAllLeds();
+  }
+  
+  
+  for (int i = 2; i <= 6;i++) {
+    Serial.print("Pinnnin ");
+    Serial.print(i);
+    Serial.print(" arvo on ");
+    Serial.println(pinnienAlkuArvot[i - 2]);
+    delay(500);
+  }
+  */

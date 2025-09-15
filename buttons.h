@@ -7,6 +7,7 @@
 extern byte pinnienAlkuArvot[5]; // Tähän tallennetaan pinnien alkuarvot, mitä ovat "nappi ylhäällä"
 extern volatile unsigned long interruptTimer;
 extern volatile int8_t buttonNumber;
+extern volatile bool buttonPressed;
 
 const byte firstPin = 2; // First PinChangeInterrupt on D-bus
 const byte lastPin =  5; // Last PinChangeInterrupt on D-bus
