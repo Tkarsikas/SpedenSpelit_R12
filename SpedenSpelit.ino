@@ -2,6 +2,7 @@
 #include "buttons.h"
 #include "leds.h"
 #include "SpedenSpelit.h"
+#include "buzzer.h"
 #define bufferSize 10                     //Voidaan muuttaa nappien ja ledien taulukon kokoa
 
 
@@ -50,7 +51,6 @@ void loop()
   pressedButton= -2;                    //muutetaan muuttujan arvo siten että seuraava keskeytys käy napin noston läpi, jotta seuraava painallus toimii oikein
   addToButtonBuffer(buttonNumber);      //lisätään napin arvo taulukkoon
   checkGame(compareIndex);              //tarkistetaan pelin tila menikö napin painallus oikein
-  Serial.println(compareIndex);     
   if(compareIndex==bufferSize){                 //nollataan muuttuja koska taulukossa ei ole kuin 10 arvoa
     compareIndex=0;
   }
@@ -63,7 +63,6 @@ void loop()
      delay(30);                         //odotellaan hetki jotta sammutus huomataan
      randomLedNumber=random(0,4);       //arvotaan uusi ledin arvo
      addToLedBuffer(randomLedNumber);   //lisätään arvottu ledin arvo taulukkoon
-     Serial.println("ledi tallennettu");  
      setLed(leds[randomLedNumber]);     //sytytetään uusi ledi
 
     handleTimerSpeedUp();
@@ -121,8 +120,7 @@ void checkGame(int index)
       if(ledBuffer[index] == buttonBuffer[index]){  // vertaillaan onko painettu nappi oikein
         score++;                                    //annetaan piste
         showResult(score);
-       Serial.print("indeksissä oikein ");
-       Serial.println(index);
+       Serial.print("Oikein!!");
           compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
       }if(ledBuffer[index] != buttonBuffer[index]){ //Vertaillaan jos painettu nappi meni väärin
       compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          

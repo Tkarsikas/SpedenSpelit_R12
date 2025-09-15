@@ -48,14 +48,5 @@ void show1(void);
 */
 void show2(int);
 
-//summerin alustamiseen. Summeri tulee kytkeä analogpinniin A0
-void initBuzzer(void);
-
-/*
-Tällä funktiolla voidaan soittaa ääni summerilla ääniä,
-käyttäjä syöttää parametrinä ledin numeron ja sitä vastaava ääni toistetaan
-Ääni moduuli on
-*/
-void playTone(byte);
 
 #endif
