@@ -25,8 +25,7 @@ volatile long timerValue=0;               //OCR1A arvon tallentamiseen
 int ss=0;
 
 void setup()
-{
-()  Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
+{  Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
   initializeDisplay();
   initButtonsAndButtonInterrupts();     //alustetaan nappi keskeytykset
   initializeLeds();                     //alustetaan ledi ohjaus              
@@ -134,7 +133,7 @@ void checkGame(int index)
       delay(500); 
       clearAllLeds();                                 //sammutetaan ledit
   
-      EEPROM.get(0, highScore);                       //haetaan aiemmin tallennetut ennätyspisteet
+     // EEPROM.get(0, highScore);                       //haetaan aiemmin tallennetut ennätyspisteet
 
       if(highScore < score){                          //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
         playTone(5);
@@ -174,16 +173,20 @@ void initializeGame()
 
 void startTheGame()
 {
-
+int timeCompare=millis();
+bool displayMode=false;
 randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
-EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
+EEPROM.get(0, highScore);           //haetaan aiemmin tallennetut ennätyspisteet
 
       while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
       playTone(4);
+      if(millis()-timeCompare >= 1000 && displayMode ==false){
       showResult(highScore);
-      delay(1000);
+      displayMode=true;
+      }else{
       showResult(score);
-      delay(1000);
+      displayMode=false;
+      }
       }
 
       for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä

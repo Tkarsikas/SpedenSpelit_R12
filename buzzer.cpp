@@ -6,12 +6,15 @@ void initBuzzer(){                                        //alustetaan summerin 
 
 void playTone (byte ledNumber){                           //parametrinä ledin numero jota vastaava ääni toistetaan.
   
+  int previousMillis;
+  int currentMillis = millis();
+
   int melody[] = {
   523, 659, 784, 1047,   // C5, E5, G5, C6
   988, 784, 880, 698,    // B5, G5, A5, F5
   659, 523, 587, 784     // E5, C5, D5, G5
 };  
-int idleMelody[] = {523, 659, 784, 659, 587, 698, 880, 698};
+int idleMelody[] = {523, 659, 784, 659, 587, 698, 880, 698}; //odotus musiikki kun peli on odottaa käynnistystä
 int fanfare[] = {
   659,  
   659, 880  
@@ -19,7 +22,7 @@ int fanfare[] = {
 
 int durations[] = {
   200,  // lyhyt dind
-  100, 1000   // nouseva sarja, viimeinen pitkä
+  100, 1000   //didiii
 };                       
   switch (ledNumber){
     case 0:
@@ -42,8 +45,11 @@ int durations[] = {
     break;
     case 5:
       for (int i = 0; i < 3; i++) {
+        if(currentMillis-previousMillis >= durations[i]){
     tone(A0, fanfare[i], durations[i]);
-    delay(durations[i] + 50); // pieni tauko nuottien välillä
+    previousMillis=currentMillis;
+        }
+    //delay(durations[i] + 50); // pieni tauko nuottien välillä
     }
     break;
     default:
