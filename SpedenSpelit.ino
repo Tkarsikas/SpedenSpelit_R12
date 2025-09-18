@@ -3,10 +3,10 @@
 #include "leds.h"
 #include "SpedenSpelit.h"
 #include "buzzer.h"
-#define bufferSize 10                     //Voidaan muuttaa nappien ja ledien taulukon kokoa
+#define bufferSize 20                     //Voidaan muuttaa nappien ja ledien taulukon kokoa
 
 
-volatile int buttonNumber = -1;           // for buttons interrupt handler
+volatile int buttonNumber = -1;           //napin numeron tallentamiseen
 int buttonBuffer[bufferSize]={0};         //nappien arvojen taulukko
 int bufferIndexButton=0;                  //nappien arvojen tallentamiseen oikeaan soluun
 
@@ -19,14 +19,14 @@ int compareIndex=0;                       //taulukon arvojen vertailuun
 int score=0;                              //pisteiden laskentaan
 int highScore=0;
 
-volatile bool newTimerInterrupt = false;  // for timer interrupt handler
+volatile bool newTimerInterrupt = false;  //for timer interrupt handler
 volatile long timerValue=0;               //OCR1A arvon tallentamiseen
 
 int ss=0;
 
 void setup()
 {
-  Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
+()  Serial.begin(9600);                   //Käynnistetään arduino baudin nopeudella
   initializeDisplay();
   initButtonsAndButtonInterrupts();     //alustetaan nappi keskeytykset
   initializeLeds();                     //alustetaan ledi ohjaus              
@@ -117,25 +117,26 @@ newTimerInterrupt=true;         //uusi timer keskeytys joka käsitellään pää
 void checkGame(int index)
 {
  
-      if(ledBuffer[index] == buttonBuffer[index]){  // vertaillaan onko painettu nappi oikein
-        score++;                                    //annetaan piste
+      if(ledBuffer[index] == buttonBuffer[index]){    // vertaillaan onko painettu nappi oikein
+        score++;                                      //annetaan piste
         showResult(score);
        Serial.print("Oikein!!");
-          compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
-      }if(ledBuffer[index] != buttonBuffer[index]){ //Vertaillaan jos painettu nappi meni väärin
-      compareIndex+=1;                          //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
-      TIMSK1 = 0;                                   //pysäytetään timer
-      Serial.println("väärin, peli ohi");            //kerrotaan pelaajalle että meni väärin
+          compareIndex+=1;                            //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
+      }if(ledBuffer[index] != buttonBuffer[index]){   //Vertaillaan jos painettu nappi meni väärin
+      compareIndex+=1;                                //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
+      TIMSK1 = 0;                                     //pysäytetään timer
+      Serial.println("väärin, peli ohi");             //kerrotaan pelaajalle että meni väärin
       Serial.print("pisteet : ");
       Serial.println(score);
       Serial.println("aloite peli uudelleen");
       setAllLeds();
-      tone(A0,100,1500);                            //väläytetään ledejä ja äänimerkki että peli päättyi
+      tone(A0,100,1500);                              //väläytetään ledejä ja äänimerkki että peli päättyi
       delay(500); 
-      clearAllLeds();                               //sammutetaan ledit
+      clearAllLeds();                                 //sammutetaan ledit
   
-      
-      if(highScore < score){                        //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
+      EEPROM.get(0, highScore);                       //haetaan aiemmin tallennetut ennätyspisteet
+
+      if(highScore < score){                          //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
         playTone(5);
         EEPROM.put(0,score);
         Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
@@ -174,7 +175,6 @@ void initializeGame()
 void startTheGame()
 {
 
-initializeGame();                   //alustetaan peli
 randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
 EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut ennätyspisteet
 
@@ -192,6 +192,7 @@ EEPROM.get(0, highScore);                     //haetaan aiemmin tallennetut enn�
       clearAllLeds();
       delay(300);
       }
+initializeGame();                   //alustetaan peli
   TCNT1=0;                                          //nollataan timer1 ajastimen arvo
   TIMSK1 |= 0b00000010;                             //käynnistetään timer1
   
