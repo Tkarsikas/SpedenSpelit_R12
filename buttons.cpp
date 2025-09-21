@@ -48,16 +48,6 @@ if(millis() - lastPressTime > 10 &&
 }
 
 
-/*int getPressedButton()                  
-{
-if(buttonPressed==true){
-return pressedButton;
-  } else{
-pressedButton= -2;
-return -1;
-  }
-}
-*/
 
 
     

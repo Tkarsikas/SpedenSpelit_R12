@@ -36,14 +36,10 @@ void setup()
 
 void loop()
 {
- /*for(int i=0; i<12; i++){
-  tone(A0, melody[i], 200);
-  delay(500);
-}*/
- if(pressedButton==4){                  //jos pelaaja painaa pelin aloitus nappia kesken pelin niin se nollataan ettei tule bugeja
-  pressedButton=-2;
-  Serial.println("nappi nollattu");
- }
+  if(pressedButton==4){                  //jos pelaaja painaa pelin aloitus nappia kesken pelin niin se nollataan ettei tule bugeja
+    pressedButton=-2;
+    Serial.println("nappi nollattu");
+  }
   if(pressedButton>-1 && pressedButton<4)
   {
   buttonNumber=pressedButton;           //tallennetaan painettu nappi toiseen muuttujaan
@@ -58,8 +54,6 @@ void loop()
   if(newTimerInterrupt == true)
   {
      newTimerInterrupt=false;           //aikakeskeytys käsitelty
-     clearAllLeds();                    //sammutetaan kaikki ledit jotta pelaaja huomaa ledin vaihtuneen
-     delay(30);                         //odotellaan hetki jotta sammutus huomataan
      randomLedNumber=random(0,4);       //arvotaan uusi ledin arvo
      addToLedBuffer(randomLedNumber);   //lisätään arvottu ledin arvo taulukkoon
      setLed(leds[randomLedNumber]);     //sytytetään uusi ledi
@@ -67,6 +61,7 @@ void loop()
     handleTimerSpeedUp();
   }
 }
+
 void handleTimerSpeedUp(void){
      ss++;                              //Lisätään muuttujan arvoon 1 jokaisella timer keskeytyksellä
   if(ss==10){                           //kun muuttuja on 10 
@@ -116,12 +111,12 @@ newTimerInterrupt=true;         //uusi timer keskeytys joka käsitellään pää
 void checkGame(int index)
 {
  
-      if(ledBuffer[index] == buttonBuffer[index]){    // vertaillaan onko painettu nappi oikein
-        score++;                                      //annetaan piste
-        showResult(score);
-       Serial.print("Oikein!!");
-          compareIndex+=1;                            //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
-      }if(ledBuffer[index] != buttonBuffer[index]){   //Vertaillaan jos painettu nappi meni väärin
+  if(ledBuffer[index] == buttonBuffer[index]){        // vertaillaan onko painettu nappi oikein
+    score++;                                          //annetaan piste
+    showResult(score);
+    Serial.print("Oikein!!");
+    compareIndex+=1;                                  //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot
+  }  if(ledBuffer[index] != buttonBuffer[index]){     //Vertaillaan jos painettu nappi meni väärin
       compareIndex+=1;                                //lisätään muuttujan arvoon 1 jotta tarkistuksessa tarkastetaan oikeat taulukon arvot                          
       TIMSK1 = 0;                                     //pysäytetään timer
       Serial.println("väärin, peli ohi");             //kerrotaan pelaajalle että meni väärin
@@ -130,24 +125,20 @@ void checkGame(int index)
       Serial.println("aloite peli uudelleen");
       setAllLeds();
       tone(A0,100,1500);                              //väläytetään ledejä ja äänimerkki että peli päättyi
-      delay(500); 
+      delay(1000); 
       clearAllLeds();                                 //sammutetaan ledit
-  
-     // EEPROM.get(0, highScore);                       //haetaan aiemmin tallennetut ennätyspisteet
-
-      if(highScore < score){                          //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
-        playTone(5);
-        EEPROM.put(0,score);
-        Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
-        Serial.println(score);
-      }
+        if(highScore < score){                        //tallennetaan aiemman kierroksen pisteet ennätykseksi jos ennätys rikottiin
+          playTone(4);
+          EEPROM.put(0,score);
+          Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
+          Serial.println(score);
+        }
       Serial.print("pisteesi ei riittänyt uuteen ennätykseen, aiempi ennätys: ");
-      Serial.println(highScore);                    //kerrotaan pelaajalle jos ei tullut uutta ennätystä
+      Serial.println(highScore);                      //kerrotaan pelaajalle jos ei tullut uutta ennätystä
 
+      startTheGame();                                 //alustetaan peli uudestaan                                     
 
-    startTheGame();                                 //alustetaan peli uudestaan                                     
-
-  }
+    }
 }
 
 
@@ -173,27 +164,29 @@ void initializeGame()
 
 void startTheGame()
 {
-int timeCompare=millis();
+static unsigned long timeCompare=millis();
 bool displayMode=false;
 randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
 EEPROM.get(0, highScore);           //haetaan aiemmin tallennetut ennätyspisteet
-
-      while(digitalRead(6)==1){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
-      playTone(4);
-      if(millis()-timeCompare >= 1000 && displayMode ==false){
-      showResult(highScore);
-      displayMode=true;
-      }else{
-      showResult(score);
-      displayMode=false;
-      }
+      while(pressedButton!=4){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
+        idleMelody();
+        if(millis()-timeCompare >= 1500){
+          if(displayMode==false){  //välkytellään displayssa highscorea ja aiemman kierroksen pisteitä
+            showResult(highScore);
+            displayMode=true;
+            }else{
+            showResult(score);
+            displayMode=false;
+            }
+          timeCompare=millis();
+        }
       }
 
       for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
       setAllLeds();
-      delay(300);
+      delay(400);
       clearAllLeds();
-      delay(300);
+      delay(400);
       }
 initializeGame();                   //alustetaan peli
   TCNT1=0;                                          //nollataan timer1 ajastimen arvo
