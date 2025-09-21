@@ -77,6 +77,10 @@ void showResult(byte number)
 {
   int tens = number /10;     //jaetaan luku 10 josta saadaan kymppien lukumäärä
   int ones = number %10;     //luvun jakojäännöksestä jää ykköset
+  if(tens>=20){
+    ones+=10;
+    tens-=10;
+  }
   writeHighAndLowNumber(tens, ones);  //syötetään kympit ja ykköset writeHighAndLowNumber funktiolle;
  
 // See requirements for this function from display.h
