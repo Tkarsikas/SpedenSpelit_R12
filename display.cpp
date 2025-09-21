@@ -41,7 +41,14 @@ digitalWrite(reset, HIGH);       //asetetaan high jotta voi tallentaa uutta
 void writeByte(uint8_t bits,bool last)
 {
 // See requirements for this function from display.h
-byte segmentByte= segmentMap[bits];     //haetaan segmenttiMapista numeroa vastaava tavu
+  byte segmentByte=0;
+if(bits<10){
+  segmentByte=segmentMap[bits];   //tallennetaan bits muuttujaa vastaava tavu muuttujaan segmentMap taulukosta
+}else{
+  bits-=10;
+  segmentByte=segmentMap[bits];   //jos kymppeinä syötetään enemmän kuin 10 asetetaan 7 segmentille piste päälle indikoimaan satasia
+  segmentByte |= 0b10000000;
+}
 
 
 for(int i =0;i<8;i++){                  //käydään kaikki bitit läpi ja shitfClockilla siirretään ne registeriin
@@ -71,6 +78,7 @@ void showResult(byte number)
   int tens = number /10;     //jaetaan luku 10 josta saadaan kymppien lukumäärä
   int ones = number %10;     //luvun jakojäännöksestä jää ykköset
   writeHighAndLowNumber(tens, ones);  //syötetään kympit ja ykköset writeHighAndLowNumber funktiolle;
+ 
 // See requirements for this function from display.h
 }
 
