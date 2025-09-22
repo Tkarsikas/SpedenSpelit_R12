@@ -6,19 +6,7 @@ int outEnable = 9;
 int latchClock = 10;
 int shiftClock = 11;
 int displayReset = 12;
-/*
-const byte numerotBitteina[10][8] = { // Segmenttien testaus, Globaali taulukko
-  {1,0,0,0,0,0,0,0}, // tyhjä (Lähtö Q7, ei ole kytkettynä. Voitaisi kytkeä pisteeseen näytön alareunassa)
-  {0,1,0,0,0,0,0,0}, // Keskiviiva
-  {0,0,1,0,0,0,0,0}, // Vasen ylempi
-  {0,0,0,1,0,0,0,0}, // Vasen alempi
-  {0,0,0,0,1,0,0,0}, // Alin viiva
-  {0,0,0,0,0,1,0,0}, // Oikea alhaalla
-  {0,0,0,0,0,0,1,0}, // Oikea ylhäällä
-  {0,0,0,0,0,0,0,1}, // Yläviiva
-  Syttyvä segmentti riippuu kytkennästä. Nykyisellä kytkennällä meni näin
-};
-*/
+
 const byte numerotBitteina[10][8] = { // Taulukko segmenttinäyttöojen ohjaukseen, Globaali taulukko
   {0,0,1,1,1,1,1,1}, // 0
   {0,0,0,0,0,1,1,0}, // 1
@@ -48,18 +36,21 @@ digitalWrite(outEnable, LOW); // Outputit aktiiviseksi
 }
 
 void writeByte(uint8_t bits,bool last) {   // See requirements for this function from display.h
-  int taulukonNumero = 0;
+  byte numero[8];
+  if (bits < 10) {
+    for (int i = 0; i < 8 ; i++) {
+      numero[i] = numerotBitteina[bits][i];
+      }
+    } else {
+      bits -= 10;
+      for (int i = 0; i < 8 ; i++) {
+        numero[i] = numerotBitteina[bits][i];
+      numero[0] = 1;
+    }
+  }
+
   for (int i = 0; i < 8 ; i++) {
-    int low_High = numerotBitteina[bits][i];
-    /*
-    Serial.print(("Taulukon numero on "));
-    Serial.print(low_High);
-    Serial.print(" numeron ");
-    Serial.print(bits);
-    Serial.print(" kohdalta. Menossa taulukon indeksi ");
-    Serial.println(taulukonNumero);
-    delay(300);
-    */
+    int low_High = numero[i];
     if (low_High == 0) {
       digitalWrite(serialInput, LOW);
     } else {
@@ -67,7 +58,6 @@ void writeByte(uint8_t bits,bool last) {   // See requirements for this function
     }
     digitalWrite(shiftClock, HIGH); // Siirrettään bitti/yhden segmentin ohjaus kontrollerille
     digitalWrite(shiftClock, LOW);
-    taulukonNumero++;
   }
   if (last == true) {
     digitalWrite(latchClock, HIGH); // "Aktivoidaan" uusi syöte kunnes molemmat ykköset ja kympit on syötetty
@@ -82,7 +72,11 @@ void writeHighAndLowNumber(uint8_t tens,uint8_t ones) { // See requirements for 
 }
 
 void showResult(byte number) { // See requirements for this function from display.h
-  uint8_t ykkoset = number % 10;  // Lasketaan tulevan arvon jakojäännös kymmenellä
-  uint8_t kympit = number / 10;  // Jaetaan tuleva arvo kymmenellä -> saadaan kymmenet
-  writeHighAndLowNumber(kympit,ykkoset);
+  uint8_t ones = number % 10;  // Lasketaan tulevan arvon jakojäännös kymmenellä
+  uint8_t tens = number / 10;  // Jaetaan tuleva arvo kymmenellä -> saadaan kymmenet
+  if (tens >= 20) {
+    ones += 10;
+    tens -= 10;
+  }
+  writeHighAndLowNumber(tens,ones);
 }

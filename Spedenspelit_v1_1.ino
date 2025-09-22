@@ -272,7 +272,7 @@ int savelienTaajuudet[26] = {
     savelienValienSummaus[i] = summa;
   }
 
-/*
+
   if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
       tone(buzzerPin, savelienTaajuudet[savel], savelienKestot[savel]);
       savel++;
@@ -285,7 +285,7 @@ int savelienTaajuudet[26] = {
       savel = 0;
       breakTimer = millis();
   }
-  */
+
 }
 
 void summeri(byte led) {
