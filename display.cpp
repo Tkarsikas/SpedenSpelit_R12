@@ -86,4 +86,3 @@ void showResult(byte number) { // See requirements for this function from displa
   uint8_t kympit = number / 10;  // Jaetaan tuleva arvo kymmenellä -> saadaan kymmenet
   writeHighAndLowNumber(kympit,ykkoset);
 }
-
