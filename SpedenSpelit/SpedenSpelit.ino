@@ -2,16 +2,21 @@
 #include "buttons.h"
 #include "leds.h"
 #include "SpedenSpelit.h"
+#define MAX_STEPS 30
 
 // Use these 2 volatile variables for communicating between
 // loop() function and interrupt handlers
 volatile int buttonNumber = -1;                             // for buttons interrupt handler
 volatile bool newTimerInterrupt = false;                    // for timer interrupt handler
+volatile bool gameRunning = false;
 volatile float timerValue = 0;                              // Alustetaan OCR1A arvo alussa nollaksi      "15624 kun peli alustetaan"
-volatile float seconds = 0;                                 // Alustetaan nollaksi
+volatile uint16_t seconds = 0;                                 // Alustetaan nollaksi
 volatile byte score = 0;                                    // Pelin pisteeet
-byte randonLeds[30];                                           // Arvotut ledit
-byte randomButtons[30];                                        // Arvotut napit
+volatile byte currentStep = 0;
+byte randomLeds[MAX_STEPS];                                           // Arvotut ledit
+byte pressedButtonArray[MAX_STEPS];                                        // Painetut napit
+
+
 
 
 void setup()
@@ -20,23 +25,28 @@ void setup()
   initButtonsAndButtonInterrupts();                         //Alustetaan button keskeytykset
   initializeDisplay();                                      //Alustetaan näyttö
   initializeLeds();                                         //Alustetaan Ledit
- // initializeTimer();                                        //Alustetaan timer1                                     
-  startTheGame();                                           //Alustetaan peli           
-
+                                    
+}           
 void loop()
 {
   
-  if(buttonNumber>=4){
-    startGame();
-
-   // start the game if buttonNumber == 4
+  if(!gameRunning && buttonNumber == 4)
+  {
+    startTheGame();
+    gameRunning = true;
+    buttonNumber = -1;
+     // start the game if buttonNumber == 4
      // check the game if 0<=buttonNumber<4
   }
 
-  if(newTimerInterrupt == true)
-  {
+  if(newTimerInterrupt) {
+    newTimerInterrupt = false;
+
+    byte led = random(0,4);
+    randomLeds[currentStep] = led;
+    checkGame(buttonNumber);
      // new random number must be generated
-     // and corresponding let must be activated
+     // and corresponding led must be activated
   }
 }
 
@@ -64,6 +74,7 @@ ISR(TIMER1_COMPA_vect){
       timerValue = newTimerValue;                             //Sijoitetaan uusi arvo timerValue muuttujaan
       OCR1A = timerValue;                                     //Päivitetään Timer1 uusi arvo
     }
+  newTimerInterrupt = true;
 
   }
 
@@ -75,18 +86,28 @@ ISR(TIMER1_COMPA_vect){
 }
 
 
-void checkGame(byte nbrOfButtonPush)
-{
-	// see requirements for the function from SpedenSpelit.h
+void checkGame(byte pressedButton) {
+  if(pressedButton == randomLeds[currentStep]){
+    score++;
+    currentStep++;
+  }else{
+    Serial.println("Väärin!");
+    gameRunning = false;            
+  }
+	
 }
 
 
 void initializeGame()
 {
   score = 0;
-  randomLeds =0;
-  randonButtons = 0;
-  
+  initializeTimer();
+  timerValue = 15624;
+
+  for(int i= 0; i < MAX_STEPS; i++){
+    randomLeds[i] = 0;
+    pressedButtonArray[i] = 0;
+  }
 
 
 	/* see requirements for the function from SpedenSpelit.h
@@ -94,9 +115,10 @@ void initializeGame()
   */
 }
 
-void startTheGame()
-{
-  intializeGame();
-  initializeTimer();
+void startTheGame(){
+  initializeGame();
+  currentStep = 0;
+  gameRunning = true;
 }
+
 
