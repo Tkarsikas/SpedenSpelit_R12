@@ -7,10 +7,11 @@ void initBuzzer(void);
 
 /*
 Tällä funktiolla voidaan soittaa ääni summerilla ääniä,
-käyttäjä syöttää parametrinä ledin numeron ja sitä vastaava ääni toistetaan
-Ääni moduuli on
+käyttäjä syöttää parametrinä esimerkiksi ledin numeron ja sitä vastaava ääni toistetaan
+Funktiossa on lisäksi tone 4 ja 5 
 */
 void playTone(byte);
+void idleMelody(void);
 
 
 
