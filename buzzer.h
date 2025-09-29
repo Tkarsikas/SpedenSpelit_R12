@@ -2,6 +2,9 @@
 #define BUZZER_H
 #include <arduino.h>
 
+extern volatile int savel;
+extern volatile unsigned long breakTimer;
+
 //summerin alustamiseen. Summeri tulee kytkeä analogpinniin A0
 void initBuzzer(void);
 
@@ -12,6 +15,7 @@ Funktiossa on lisäksi tone 4 ja 5
 */
 void playTone(byte);
 void idleMelody(void);
+void idleMelody2(void);
 
 
 
