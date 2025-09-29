@@ -28,9 +28,9 @@ void initButtonsAndButtonInterrupts(void)
 ISR(PCINT2_vect) 
 {
 if(millis() - lastPressTime > 10 &&  
-    buttonPressed==false){    // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
+    buttonPressed==false){                    // aikavertailu (debounce) kun nappi painetaan low tilaan, muita ehtoja lisänä
     for(int i=firstPin; i<=lastPin;i++){
-        while(digitalRead(i)==0){                  //luetaan kaikki pinnit ja jos joku pinneistä 0 niin edetään
+        if(digitalRead(i)==0){                    //luetaan kaikki pinnit ja jos joku pinneistä 0 niin edetään
             buttonPressed = true;                  //asetetaan napin painallus tila true
             pressedButton = i - 2;                 //tallennetaan napin numero muuttujaan
             lastPressTime=millis();                //tallennetaan painallus hetken aika muuttujaan
@@ -42,8 +42,8 @@ if(millis() - lastPressTime > 10 &&
   if(millis() - lastPressTime > 10 
       && buttonPressed == true){                   //kun nappi nostetaan tehdään myös debounce
     lastPressTime=millis();                        //Tallennetaan painallus hetken aika muuttujaan
-    buttonPressed=false;                           //asetetaan napin painallus tila takaisin false jotta seuraava painallus on mahdollista rekisteröidä
-    pressedButton=-1;                              //nappi numero takaisin -1 jotta seuraava painalus on mahdollista rekisteröidä 
+    buttonPressed=false;                           //asetetaan napin painallus tila takaisin false, jotta seuraava painallus on mahdollista rekisteröidä
+    pressedButton=-1;                              //nappinumero takaisin -1 jotta seuraava painalus on mahdollista rekisteröidä 
   }
 }
 
