@@ -1,124 +1,165 @@
 #include "display.h"
 #include "buttons.h"
 #include "leds.h"
+#include "buzzer.h"
 #include "SpedenSpelit.h"
+#include <EEPROM.h>
 #define MAX_STEPS 30
 
-// Use these 2 volatile variables for communicating between
-// loop() function and interrupt handlers
-volatile int buttonNumber = -1;                             // for buttons interrupt handler
-volatile bool newTimerInterrupt = false;                    // for timer interrupt handler
-volatile bool gameRunning = false;
-volatile float timerValue = 0;                              // Alustetaan OCR1A arvo alussa nollaksi      "15624 kun peli alustetaan"
-volatile uint16_t seconds = 0;                                 // Alustetaan nollaksi
-volatile byte score = 0;                                    // Pelin pisteeet
-volatile byte currentStep = 0;
-byte randomLeds[MAX_STEPS];                                           // Arvotut ledit
-byte pressedButtonArray[MAX_STEPS];                                        // Painetut napit
+
+volatile int buttonNumber = -1;                                           // for buttons interrupt handler
+volatile bool newTimerInterrupt = false;                                  // for timer interrupt handler
+volatile bool gameRunning = false;                                        // Pelin tilan seuraamiseen
+volatile uint16_t timerValue = 0;                                         // Alustetaan OCR1A arvo alussa nollaksi 
+volatile uint16_t seconds = 0;                                            // Alustetaan nollaksi
+volatile byte score = 0;                                                  // Pelin pisteet                                  
+volatile byte highscore = 0;                                              // Pelin huippupisteet
+uint16_t currentStep = 0;                                                 // Pelin askel
+uint16_t playerStep = 0;                                                  // Pelaajan askel
+byte randomLeds[MAX_STEPS];                                               // Taulukko arvotuille ledeille
+byte pressedButtonArray[MAX_STEPS];                                       // Taulukko painetuille napeille
+byte lastLed = 255;                                                       // Muuttuja estämään saman ledin peräkkäinen arpominen
 
 
+void setup(){
+
+  Serial.begin(9600);                                                     // Käynnistetään Arduino
+  initializeDisplay();                                                    // Alustetaan näyttö
+  initializeLeds();                                                       // Alustetaan ledit
+  initButtonsAndButtonInterrupts();                                       // Alustetaan napit ja nappikeskeytykset
+  initBuzzer();                                                           // Alustetaan kaiutin
+  clearAllLeds();                                                         // Sammutetaan alussa ledit
+  highscore = EEPROM.read(0);                                             // Haetaan highscore muistista
+  Serial.println("Tervetuloa SpedenSpeleihin!");
+  Serial.print("Tämän hetken ennätys:");
+  Serial.println(highscore); 
+  showResult(highscore);           
+  Serial.println("Aloita peli painamalla valkoista nappia!");  
+  playTone(4);                       
+}  
 
 
-void setup()
-{
-  Serial.begin(9600);                                       //Käynnistetään Arduino
-  initButtonsAndButtonInterrupts();                         //Alustetaan button keskeytykset
-  initializeDisplay();                                      //Alustetaan näyttö
-  initializeLeds();                                         //Alustetaan Ledit
-                                    
-}           
-void loop()
-{
-  
-  if(!gameRunning && buttonNumber == 4)
-  {
-    startTheGame();
-    gameRunning = true;
-    buttonNumber = -1;
-     // start the game if buttonNumber == 4
-     // check the game if 0<=buttonNumber<4
-  }
+void loop(){
 
-  if(newTimerInterrupt) {
-    newTimerInterrupt = false;
-
-    byte led = random(0,4);
-    randomLeds[currentStep] = led;
-    checkGame(buttonNumber);
-     // new random number must be generated
-     // and corresponding led must be activated
-  }
-}
-
-void initializeTimer(void)
-{
-	noInterrupts();                                             //Estetään keskeytykset
-  TCCR1A = 0b00000000;                                        //Nollataan rekisteri A
-  TCCR1B = 0b00000000;                                        //Nollataan rekisteri B
-  TCNT1 = 0;                                                  //Nollataan laskuri
-  OCR1A = timerValue;                                         //Pelin alussa timerValue = 15624  -> 1Hz (16 MHz / 1024 (15624) = 1Hz)
-  
-  TCCR1B |= (1 << WGM12);                                     //Asetetaan timer CTC-tilaan "Clear timer on compare match"
-  TCCR1B |= (1 << CS12) | (1 << CS10);                        //Asetetaan prescaler 1024 
-  TIMSK1 |= (1 << OCIE1A);                                    //Sallitaan keskeytys kun OCR1A saavutetaan
-  interrupts();                                               //Sallitaan keskeytykset
-  
-  
-}
-ISR(TIMER1_COMPA_vect){
-  seconds++;
-
-  if (seconds % 10 == 0){
-    uint16_t newTimerValue = ((uint32_t)timerValue * 90)/100; //Nopeutetaan peliä joka kymmenes keskeytys 10 %
-    if (newTimerValue > 0){                                   //Varmistetaan ettei uusi timerValue voi olla nolla tai negatiivinen
-      timerValue = newTimerValue;                             //Sijoitetaan uusi arvo timerValue muuttujaan
-      OCR1A = timerValue;                                     //Päivitetään Timer1 uusi arvo
+  while(pressedButton == -1 && !gameRunning){                             // Soitetaan melodiaa kun mitään nappia ei ole painettua                
+      idleMelody();                                                       // ja pelin tila ei ole aktiivinen
     }
+
+  buttonNumber = pressedButton;                                
+
+  if(pressedButton >=0){
+    
+    if(pressedButton == 4 && !gameRunning){                               // Kun painetaan käynnistysnappia ja peli ei ole käynnissä, alustetaan peli
+    startTheGame();
+    Serial.println("Peli alkaa!");
+      
+    }else if(gameRunning && pressedButton < 4 && pressedButton >= 0){     // Jos pelin tila on true ja painettu nappi on 0-3 eli ledejä vastaavat napit,
+    pressedButtonArray[playerStep % MAX_STEPS] = pressedButton;
+    checkGame(pressedButton);                                             // kutsutaan checkGame funktio jossa tarkistetaan oliko painallus oikea
+
+    }
+    pressedButton = -1;                                                   // Nollataan painallus ettei nappi jää "pohjaan"
+    buttonNumber = -1;                                                    // Nollataan painallus ettei nappi jää "pohjaan"
+  }
+
+  
+if(newTimerInterrupt && gameRunning){                                     // Kun peli on päällä ja tapahtuu ajastinkeskeytys
+  
+  if(playerStep == currentStep){
+  clearAllLeds();                                                         // Sammutetaan kaikki ledit ennen uuden sytyttämistä
+  }
+
+  byte led;
+  do {                                                     
+    led = random(0,4);                                                    // Arvotaan uusi led ja 
+  } while(led == lastLed);                                                // Varmistetaan ettei ohjelma arvo peräkkäin kahta samaa lediä
+
+  lastLed = led;
+
+  setLed(led);
+  randomLeds[currentStep % MAX_STEPS] = led;
+  currentStep++;
+  newTimerInterrupt = false;                                               // Nollataan, jotta tämä osa suoritetaan vain kerran per keskeytys
+  
+}
+}
+
+
+void initializeTimer(void){
+
+	noInterrupts();                                                          // Estetään keskeytykset
+  TCCR1A = 0b00000000;                                                     // Nollataan rekisteri A
+  TCCR1B = 0b00000000;                                                     // Nollataan rekisteri B
+  TCNT1 = 0;                                                               // Nollataan laskuri
+  OCR1A = timerValue;                                                      // Pelin alussa timerValue = 15624  -> 1Hz (16 MHz / 1024 (15624) = 1Hz)
+  
+  TCCR1B |= (1 << WGM12);                                                  // Asetetaan timer CTC-tilaan "Clear timer on compare match"
+  TCCR1B |= (1 << CS12) | (1 << CS10);                                     // Asetetaan prescaler 1024 
+  TIMSK1 |= (1 << OCIE1A);                                                 // Sallitaan keskeytys kun OCR1A saavutetaan
+  interrupts();                                                            // Sallitaan keskeytykset
+}
+
+
+ISR(TIMER1_COMPA_vect){
+
+  seconds++;
   newTimerInterrupt = true;
 
+  if (seconds % 10 == 0){
+    uint16_t newTimerValue = ((uint32_t)timerValue * 90)/100;             // Nopeutetaan peliä joka kymmenes keskeytys 10 %
+    if (newTimerValue > 0){                                               // Varmistetaan ettei uusi timerValue voi olla nolla tai negatiivinen
+      timerValue = newTimerValue;                                         // Sijoitetaan uusi arvo timerValue muuttujaan
+      OCR1A = timerValue;                                                 // Päivitetään Timer1 uusi arvo
+    }
   }
-
-  /*
-  Communicate to loop() that it's time to make new random number.
-  Increase timer interrupt rate after 10 interrupts.
-  */
-  
 }
 
-
 void checkGame(byte pressedButton) {
-  if(pressedButton == randomLeds[currentStep]){
+
+  if(pressedButtonArray[playerStep % MAX_STEPS] == randomLeds[playerStep%MAX_STEPS]){
     score++;
-    currentStep++;
-  }else{
+    playerStep++;
+    showResult(score);
+  } else {
     Serial.println("Väärin!");
-    gameRunning = false;            
+    tone(A0,100,1500);
+    setAllLeds();
+    delay(1000);
+    clearAllLeds();
+    showResult(score);
+    gameRunning = false;
+
+    if(score > highscore){
+      highscore = score;
+      playTone(4);
+      EEPROM.write(0, highscore);
+      Serial.println("Uusi ennätys!");
+    }
+
+    Serial.print("Peli päättyi! Pisteet:");
+    Serial.println(score);
+    Serial.print("Ennätys: ");
+    Serial.println(highscore);
   }
-	
 }
 
 
 void initializeGame()
 {
-  score = 0;
-  initializeTimer();
-  timerValue = 15624;
-
-  for(int i= 0; i < MAX_STEPS; i++){
-    randomLeds[i] = 0;
-    pressedButtonArray[i] = 0;
+  gameRunning = true;                                                    // Asetetaan pelin tila aktiiviseksi
+  playerStep = 0;                                                        // Nollataan pelaajan askel
+  currentStep = 0;                                                       // Nollataan pelin askel
+  score = 0;                                                             // Nollataan pisteet
+  seconds = 0;                                                           // Nollataan sekunnit muuttuja jota käyteään pelin nopeutuksessa
+  timerValue = 15624;                                                    // Asetetaan OCR1A alkuarvo
+  
+  for(int i= 0; i < MAX_STEPS; i++){                                     // Nollataan taulukot
+    randomLeds[i] = -1;
+    pressedButtonArray[i] = -1;
   }
-
-
-	/* see requirements for the function from SpedenSpelit.h
-  Alustetaan peliin tarvittavat muuttujat napeille ja random luvuille(aluksi nollataan). Taulukot arvoille(?)
-  */
 }
 
 void startTheGame(){
-  initializeGame();
-  currentStep = 0;
-  gameRunning = true;
+initializeGame();                                                        // Alustetaan peli
+initializeTimer();                                                        // Alustetaan timer
 }
-
-
