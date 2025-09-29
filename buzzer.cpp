@@ -1,5 +1,9 @@
 #include "buzzer.h"
 
+volatile int savel=0;
+volatile unsigned long breakTimer=0;
+
+
 void initBuzzer(){                                        //alustetaan summerin ohjaus pinni output
   pinMode(A0, OUTPUT);
 }
@@ -61,7 +65,8 @@ int idleMelody[] = {
   523, 659, 698, 784,  // C5, E5, F5, G5
   784, 698, 659, 587   // G5, F5, E5, D5
 };
-  
+
+
 if(noteStatus==false){
   tone(A0, idleMelody[indexer]);
   noteStatus=true;
@@ -76,6 +81,58 @@ if(noteStatus==true && millis()-currentMillis>=250){
     }
   }
 }
+void idleMelody2(){
+int savelienTaajuudet[26] = {
+  330, 294, 262, 294, 330,
+  330, 330, 294, 294, 294,
+  330, 392, 392, 330, 294,
+  262, 294, 330, 330, 330,
+  294, 294, 330, 294, 262,
+  0};
 
+  // Yksittäisten sävelen soinnin kesto
+  int savelienKestot[26] = {  
+  450,150,300,300,300,
+  300,300,300,300,300,
+  300,300,300,450,150,
+  300,300,300,300,300,
+  300,300,300,300,300,
+  1000};
+
+  // Yksittäisten sävelien välit
+  int savelienValit[26] = {  
+  60,60,60,60,60,
+  60,300,60,60,300,
+  60,60,300,60,60,
+  60,60,60,60,300,
+  60,60,60,60,60,
+  1000};
+
+  unsigned long musiikinTahdistus = millis() - breakTimer;
+
+  int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
+  int savelienValienSummaus[26];
+  int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);
+  int summa = 0;
+  for (int i = 0; i < taulukonKoko;i++) {
+    summa = summa + savelienValit[i] + savelienKestot[i];
+    savelienValienSummaus[i] = summa;
+  }
+
+
+  if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
+      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
+      savel++;
+  } 
+  else if (musiikinTahdistus > savelienValienSummaus[savel - 1] && musiikinTahdistus < savelienValienSummaus[savel] && savel > 0 && savel < 25) {
+      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
+      savel++;
+  } 
+  else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == 25) {
+      savel = 0;
+      breakTimer = millis();
+  }
+
+}
 
 

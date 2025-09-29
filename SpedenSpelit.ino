@@ -170,14 +170,14 @@ bool displayMode=false;
 randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhjää analogista pinniä jotta random generointi on parempi
 EEPROM.get(0, highScore);           //haetaan aiemmin tallennetut ennätyspisteet
       while(pressedButton!=4){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
-        idleMelody();
-
+        //idleMelody();
+        idleMelody2();
         if(millis()-timeCompare >= 1500){
           if(displayMode==false){  //välkytellään displayssa highscorea ja aiemman kierroksen pisteitä
             showResult(highScore);
             displayMode=true;
             setAllLeds();
-            noTone(A0);
+            //noTone(A0);
             }else{
             showResult(score);
             displayMode=false;
