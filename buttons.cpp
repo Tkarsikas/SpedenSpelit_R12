@@ -7,7 +7,6 @@ Tätä muuttujaa pressedButton voidaan käyttää sitten pääfunktiossa ehtona 
 jotta sen käsitteleminen on helpompaa.
 */
 
-volatile int pressedButton=-1;              //napin numeron tallentamiseen
 volatile unsigned long lastPressTime = 0;   //aikavertailuun
 volatile bool buttonPressed = false;        //napin painalluksen tila
 
