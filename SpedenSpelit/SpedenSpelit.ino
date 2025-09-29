@@ -19,6 +19,7 @@ uint16_t playerStep = 0;                                                  // Pel
 byte randomLeds[MAX_STEPS];                                               // Taulukko arvotuille ledeille
 byte pressedButtonArray[MAX_STEPS];                                       // Taulukko painetuille napeille
 byte lastLed = 255;                                                       // Muuttuja estämään saman ledin peräkkäinen arpominen
+unsigned long breakTimer = 0;                                             // Käytetään pisteiden näyttämiseen pelin ollessa tauolla
 
 
 void setup(){
@@ -32,10 +33,8 @@ void setup(){
   highscore = EEPROM.read(0);                                             // Haetaan highscore muistista
   Serial.println("Tervetuloa SpedenSpeleihin!");
   Serial.print("Tämän hetken ennätys:");
-  Serial.println(highscore); 
-  showResult(highscore);           
-  Serial.println("Aloita peli painamalla valkoista nappia!");  
-  playTone(4);                       
+  Serial.println(highscore);          
+  Serial.println("Aloita peli painamalla valkoista nappia!");                         
 }  
 
 
@@ -43,6 +42,7 @@ void loop(){
 
   while(pressedButton == -1 && !gameRunning){                             // Soitetaan melodiaa kun mitään nappia ei ole painettua                
       idleMelody();                                                       // ja pelin tila ei ole aktiivinen
+      gameBreak();
     }
 
   buttonNumber = pressedButton;                                
@@ -77,9 +77,9 @@ if(newTimerInterrupt && gameRunning){                                     // Kun
   lastLed = led;
 
   setLed(led);
-  randomLeds[currentStep % MAX_STEPS] = led;
-  currentStep++;
-  newTimerInterrupt = false;                                               // Nollataan, jotta tämä osa suoritetaan vain kerran per keskeytys
+  randomLeds[currentStep % MAX_STEPS] = led;                              // Tallennetaan taulukkoon
+  currentStep++;                                                          // Pelin askel kasvaa
+  newTimerInterrupt = false;                                              // Nollataan, jotta tämä osa suoritetaan vain kerran per keskeytys
   
 }
 }
@@ -116,20 +116,20 @@ ISR(TIMER1_COMPA_vect){
 
 void checkGame(byte pressedButton) {
 
-  if(pressedButtonArray[playerStep % MAX_STEPS] == randomLeds[playerStep%MAX_STEPS]){
-    score++;
-    playerStep++;
-    showResult(score);
+  if(pressedButtonArray[playerStep % MAX_STEPS] == randomLeds[playerStep % MAX_STEPS]){   // Tarkistetaan vastaako pelaajan painama nappi oikeaa lediä
+    score++;                                                              // Kasvatetaan pisteitä yhdellä                         
+    playerStep++;                                                         // Kasvatetaan pelaajan askelta
+    showResult(score);                                                    // Näytetään pisteey näytöllä
   } else {
-    Serial.println("Väärin!");
-    tone(A0,100,1500);
-    setAllLeds();
+    Serial.println("Väärin!");                                            
+    tone(A0,100,1500);                                                    // Jos painallus ei vastaa oikeaa lediä kaikki valot vilkkuvat kerran ja peli päättyy
+    setAllLeds();                                                         
     delay(1000);
     clearAllLeds();
-    showResult(score);
-    gameRunning = false;
+    showResult(score);                                                    // Näytetään tulos näytöllä
+    gameRunning = false;                                                  // Pelin tila deaktivoituu
 
-    if(score > highscore){
+    if(score > highscore){                                                // Uuden ennätyksen tullessa soitetaa fanfaari ja tallenetaan tulos muistiin
       highscore = score;
       playTone(4);
       EEPROM.write(0, highscore);
@@ -152,6 +152,7 @@ void initializeGame()
   score = 0;                                                             // Nollataan pisteet
   seconds = 0;                                                           // Nollataan sekunnit muuttuja jota käyteään pelin nopeutuksessa
   timerValue = 15624;                                                    // Asetetaan OCR1A alkuarvo
+  showResult(score);                                                     // Lähetetään pisteet nolla ruudulle
   
   for(int i= 0; i < MAX_STEPS; i++){                                     // Nollataan taulukot
     randomLeds[i] = -1;
@@ -159,7 +160,23 @@ void initializeGame()
   }
 }
 
+void gameBreak(void) {
+  
+
+  int ruudunPaivitus = 2000;                                              // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
+                                                                          
+  if ((millis() - breakTimer) % ruudunPaivitus < ruudunPaivitus / 2) {    // Päivitetään pisteet 10000 ms välein
+    showResult(score);
+  }
+  if ((millis() - breakTimer) % ruudunPaivitus > ruudunPaivitus / 2) {
+    showResult(highscore);
+  }
+  if (millis() - breakTimer > ruudunPaivitus) {
+    breakTimer = millis();
+  }
+}
+
 void startTheGame(){
-initializeGame();                                                        // Alustetaan peli
+initializeGame();                                                         // Alustetaan peli
 initializeTimer();                                                        // Alustetaan timer
 }
