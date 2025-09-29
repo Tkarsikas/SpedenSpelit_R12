@@ -132,6 +132,7 @@ void checkGame(int index)
           EEPROM.put(0,score);
           Serial.print("onneksi olkoon olet tehnyt uuden ennätyksen, ennätys pisteet: ");
           Serial.println(score);
+          delay(500);
         }
       Serial.print("pisteesi ei riittänyt uuteen ennätykseen, aiempi ennätys: ");
       Serial.println(highScore);                      //kerrotaan pelaajalle jos ei tullut uutta ennätystä
@@ -170,18 +171,22 @@ randomSeed(analogRead(A0));         //määritellään randomSeed lukemaan tyhj�
 EEPROM.get(0, highScore);           //haetaan aiemmin tallennetut ennätyspisteet
       while(pressedButton!=4){                     //odotellaan että pelaaja aloittaa pelin uudestaan painamalla 5 nappia
         idleMelody();
+
         if(millis()-timeCompare >= 1500){
           if(displayMode==false){  //välkytellään displayssa highscorea ja aiemman kierroksen pisteitä
             showResult(highScore);
             displayMode=true;
+            setAllLeds();
+            noTone(A0);
             }else{
             showResult(score);
             displayMode=false;
+            clearAllLeds();
             }
           timeCompare=millis();
         }
       }
-
+      noTone(A0);
       for(int i =0; i<2; i++){                      //pelin aloittamiseksi välkytellään ledejä
       setAllLeds();
       delay(400);

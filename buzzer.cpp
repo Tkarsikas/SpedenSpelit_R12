@@ -31,7 +31,9 @@ int durations[] = {
     case 4:
       for (int i = 0; i < 3; i++) {
       tone(A0, fanfare[i], durations[i]);
+      delay(250);
       }
+      delay(500);
     break;
     default:
     tone(A0,2000,200);
