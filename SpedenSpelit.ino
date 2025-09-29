@@ -7,7 +7,7 @@
 #define MAX_STEPS 30
 
 
-volatile int buttonNumber = -1;                                           // for buttons interrupt handler
+volatile int pressedButton = -1;                                           // for buttons interrupt handler
 volatile bool newTimerInterrupt = false;                                  // for timer interrupt handler
 volatile bool gameRunning = false;                                        // Pelin tilan seuraamiseen
 volatile uint16_t timerValue = 0;                                         // Alustetaan OCR1A arvo alussa nollaksi 
@@ -44,8 +44,7 @@ void loop(){
       idleMelody();                                                       // ja pelin tila ei ole aktiivinen
       gameBreak();
     }
-
-  buttonNumber = pressedButton;                                
+                            
 
   if(pressedButton >=0){
     
@@ -59,7 +58,6 @@ void loop(){
 
     }
     pressedButton = -1;                                                   // Nollataan painallus ettei nappi jää "pohjaan"
-    buttonNumber = -1;                                                    // Nollataan painallus ettei nappi jää "pohjaan"
   }
 
   

@@ -3,7 +3,7 @@
 #include <arduino.h>
 
 extern volatile int savel;
-extern volatile unsigned long breakTimer;
+extern volatile unsigned long breakTimer1;
 
 //summerin alustamiseen. Summeri tulee kytkeä analogpinniin A0
 void initBuzzer(void);

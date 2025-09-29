@@ -1,7 +1,7 @@
 #include "buzzer.h"
 
 volatile int savel=0;
-volatile unsigned long breakTimer=0;
+volatile unsigned long breakTimer1=0;
 
 
 void initBuzzer(){                                        //alustetaan summerin ohjaus pinni output
@@ -108,7 +108,7 @@ int savelienTaajuudet[26] = {
   60,60,60,60,60,
   1000};
 
-  unsigned long musiikinTahdistus = millis() - breakTimer;
+  unsigned long musiikinTahdistus = millis() - breakTimer1;
 
   int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
   int savelienValienSummaus[26];
@@ -130,7 +130,7 @@ int savelienTaajuudet[26] = {
   } 
   else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == 25) {
       savel = 0;
-      breakTimer = millis();
+      breakTimer1 = millis();
   }
 
 }
