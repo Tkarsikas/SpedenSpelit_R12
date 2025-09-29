@@ -178,5 +178,22 @@ void gameBreak(void) {
 
 void startTheGame(){
 initializeGame();                                                         // Alustetaan peli
+
+for (int i = 0; i < 4;i++) {
+    if (i < 3) {
+      tone(A0, 550, 400);                                                 // Vilkutetaan pelin alussa ledejä ja soitetaan startti äänet
+      setAllLeds();
+      delay(400);
+      clearAllLeds();
+      delay(150);
+    }
+    if (i == 3) {
+      tone(A0, 1750, 600);
+      setAllLeds();
+      delay(600);
+      clearAllLeds();
+      delay(150);
+    }
+  }
 initializeTimer();                                                        // Alustetaan timer
 }
