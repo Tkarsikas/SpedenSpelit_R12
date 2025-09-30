@@ -6,7 +6,7 @@ Kun nappia painetaan niin keskeytys funktiossa muuttujaan pressedButton tallenne
 Tätä muuttujaa pressedButton voidaan käyttää sitten pääfunktiossa ehtona ja se voidaan tallentaa siellä toiseen muuttujaan
 jotta sen käsitteleminen on helpompaa.
 */
-
+volatile int pressedButton = -1;
 volatile unsigned long lastPressTime = 0;   //aikavertailuun
 volatile bool buttonPressed = false;        //napin painalluksen tila
 
