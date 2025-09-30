@@ -33,6 +33,7 @@ if(millis() - lastPressTime > 10 &&
             buttonPressed = true;                  //asetetaan napin painallus tila true
             pressedButton = i - 2;                 //tallennetaan napin numero muuttujaan
             lastPressTime=millis();                //tallennetaan painallus hetken aika muuttujaan
+            Serial.println(pressedButton);
             break;                                 //keskeytetään jos joku nappi on low tilassa. Mahdollistaa vain yhden napin painalluksen
        }
     }

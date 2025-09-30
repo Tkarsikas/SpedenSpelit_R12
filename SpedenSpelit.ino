@@ -41,8 +41,9 @@ void setup(){
 void loop(){
 
   while(pressedButton == -1 && !gameRunning){                             // Soitetaan melodiaa kun mitään nappia ei ole painettua                
-      idleMelody();                                                       // ja pelin tila ei ole aktiivinen
-      gameBreak();
+      //idleMelody();                                                       // ja pelin tila ei ole aktiivinen
+      //gameBreak();
+      //gameBreak1();
     }
                             
 
@@ -158,7 +159,7 @@ void initializeGame()
   }
 }
 
-void gameBreak(void) {
+/*void gameBreak(void) {
   
 
   int ruudunPaivitus = 2000;                                              // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
@@ -172,7 +173,7 @@ void gameBreak(void) {
   if (millis() - breakTimer > ruudunPaivitus) {
     breakTimer = millis();
   }
-}
+}*/
 
 void startTheGame(){
 initializeGame();                                                         // Alustetaan peli
@@ -194,4 +195,71 @@ for (int i = 0; i < 4;i++) {
     }
   }
 initializeTimer();                                                        // Alustetaan timer
+}
+
+void gameBreak(void) {
+
+  unsigned long kesto = 10000;
+  int ruudunPaivitus = 1500; // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
+
+    // Päivitetään pisteet 750 ms välein
+  if ((millis() - breakTimer) % ruudunPaivitus < ruudunPaivitus / 2) {
+    showResult(score);
+  }
+  if ((millis() - breakTimer) % ruudunPaivitus > ruudunPaivitus / 2) {
+    showResult(highscore);
+  }
+
+  // Soitetun kappaleen taajuudet
+int savelienTaajuudet[26] = {
+  330, 294, 262, 294, 330,
+  330, 330, 294, 294, 294,
+  330, 392, 392, 330, 294,
+  262, 294, 330, 330, 330,
+  294, 294, 330, 294, 262,
+  0};
+
+  // Yksittäisten sävelen soinnin kesto
+  int savelienKestot[26] = {  
+  450,150,300,300,300,
+  300,300,300,300,300,
+  300,300,300,450,150,
+  300,300,300,300,300,
+  300,300,300,300,300,
+  1000};
+
+  // Yksittäisten sävelien välit
+  int savelienValit[26] = {  
+  60,60,60,60,60,
+  60,300,60,60,300,
+  60,60,300,60,60,
+  60,60,60,60,300,
+  60,60,60,60,60,
+  1000};
+
+  unsigned long musiikinTahdistus = millis() - breakTimer;
+
+  int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
+  int savelienValienSummaus[26];
+  int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);
+  int summa = 0;
+  for (int i = 0; i < taulukonKoko;i++) {
+    summa = summa + savelienValit[i] + savelienKestot[i];
+    savelienValienSummaus[i] = summa;
+  }
+
+
+  if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
+      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
+      savel++;
+  } 
+  else if (musiikinTahdistus > savelienValienSummaus[savel - 1] && musiikinTahdistus < savelienValienSummaus[savel] && savel > 0 && savel < 25) {
+      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
+      savel++;
+  } 
+  else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == 25) {
+      savel = 0;
+      breakTimer = millis();
+  }
+
 }
