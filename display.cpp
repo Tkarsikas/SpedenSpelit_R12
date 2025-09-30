@@ -95,6 +95,7 @@ void showResult(byte number) { // See requirements for this function from displa
   Pisteillä indikoidaan, onko pisteet välillä 100-199 / 200-299
   Jos yksi piste palaa -> 100-199. Jos kaksi pistettä -> 200-299
   */
+  
   if (tens >= 20) {
     ones += 10;
     tens -= 10;

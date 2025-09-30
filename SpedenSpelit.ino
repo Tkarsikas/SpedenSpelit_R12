@@ -7,7 +7,7 @@
 #define MAX_STEPS 30
 
 
-volatile int pressedButton = -1;                                           // for buttons interrupt handler
+volatile int pressedButton = -1;                                          // for buttons interrupt handler
 volatile bool newTimerInterrupt = false;                                  // for timer interrupt handler
 volatile bool gameRunning = false;                                        // Pelin tilan seuraamiseen
 volatile uint16_t timerValue = 0;                                         // Alustetaan OCR1A arvo alussa nollaksi 
@@ -23,7 +23,6 @@ unsigned long breakTimer = 0;                                             // Kä
 
 
 void setup(){
-
   Serial.begin(9600);                                                     // Käynnistetään Arduino
   initializeDisplay();                                                    // Alustetaan näyttö
   initializeLeds();                                                       // Alustetaan ledit
@@ -34,15 +33,16 @@ void setup(){
   Serial.println("Tervetuloa SpedenSpeleihin!");
   Serial.print("Tämän hetken ennätys:");
   Serial.println(highscore);          
-  Serial.println("Aloita peli painamalla valkoista nappia!");                         
+  Serial.println("Aloita peli painamalla valkoista nappia!");
+  EEPROM.write(0, 210);                                                  // Kommentoi tämä pois, jos haluat nollata ennätyksen. Käynnistä kerran arduino ja kommentoi takaisin
 }  
 
 
 void loop(){
 
   while(pressedButton == -1 && !gameRunning){                             // Soitetaan melodiaa kun mitään nappia ei ole painettua                
-      //idleMelody();                                                       // ja pelin tila ei ole aktiivinen
-      //gameBreak();
+      //idleMelody();                                                     // ja pelin tila ei ole aktiivinen
+      gameBreak();                                                        // Funktio sisältää sekä pisteiden näytön että musiikin toistamisen
       //gameBreak1();
     }
                             
@@ -79,13 +79,11 @@ if(newTimerInterrupt && gameRunning){                                     // Kun
   randomLeds[currentStep % MAX_STEPS] = led;                              // Tallennetaan taulukkoon
   currentStep++;                                                          // Pelin askel kasvaa
   newTimerInterrupt = false;                                              // Nollataan, jotta tämä osa suoritetaan vain kerran per keskeytys
-  
-}
+ }
 }
 
 
 void initializeTimer(void){
-
 	noInterrupts();                                                          // Estetään keskeytykset
   TCCR1A = 0b00000000;                                                     // Nollataan rekisteri A
   TCCR1B = 0b00000000;                                                     // Nollataan rekisteri B
@@ -139,6 +137,7 @@ void checkGame(byte pressedButton) {
     Serial.println(score);
     Serial.print("Ennätys: ");
     Serial.println(highscore);
+    breakTimer = millis();
   }
 }
 
@@ -199,10 +198,9 @@ initializeTimer();                                                        // Alu
 
 void gameBreak(void) {
 
-  unsigned long kesto = 10000;
-  int ruudunPaivitus = 1500; // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
+  int ruudunPaivitus = 2000; // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
 
-    // Päivitetään pisteet 750 ms välein
+  // Päivitetään pisteet & highscore 1000 ms välein kun peli ei ole aktiivinen
   if ((millis() - breakTimer) % ruudunPaivitus < ruudunPaivitus / 2) {
     showResult(score);
   }
@@ -211,7 +209,7 @@ void gameBreak(void) {
   }
 
   // Soitetun kappaleen taajuudet
-int savelienTaajuudet[26] = {
+  int savelienTaajuudet[26] = {
   330, 294, 262, 294, 330,
   330, 330, 294, 294, 294,
   330, 392, 392, 330, 294,
@@ -248,6 +246,10 @@ int savelienTaajuudet[26] = {
     savelienValienSummaus[i] = summa;
   }
 
+  /*
+  If-else funktio laskee sävelien keston sekä sävelten välit yhteen ja toistaa sävelet järjetyksessä huomioiden myös välit
+  Viimeisen sävelen jälkeen nollataan breakTimer-muuttuja, jotta kappale alkaa alusta
+  */
 
   if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
       tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
@@ -261,5 +263,4 @@ int savelienTaajuudet[26] = {
       savel = 0;
       breakTimer = millis();
   }
-
 }
