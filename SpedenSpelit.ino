@@ -41,9 +41,7 @@ void setup(){
 void loop(){
 
   while(pressedButton == -1 && !gameRunning){                             // Soitetaan melodiaa kun mitään nappia ei ole painettua                
-      //idleMelody();                                                     // ja pelin tila ei ole aktiivinen
       gameBreak();                                                        // Funktio sisältää sekä pisteiden näytön että musiikin toistamisen
-      //gameBreak1();
     }
                             
 
@@ -158,21 +156,6 @@ void initializeGame()
   }
 }
 
-/*void gameBreak(void) {
-  
-
-  int ruudunPaivitus = 2000;                                              // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
-                                                                          
-  if ((millis() - breakTimer) % ruudunPaivitus < ruudunPaivitus / 2) {    // Päivitetään pisteet 10000 ms välein
-    showResult(score);
-  }
-  if ((millis() - breakTimer) % ruudunPaivitus > ruudunPaivitus / 2) {
-    showResult(highscore);
-  }
-  if (millis() - breakTimer > ruudunPaivitus) {
-    breakTimer = millis();
-  }
-}*/
 
 void startTheGame(){
 initializeGame();                                                         // Alustetaan peli

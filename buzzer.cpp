@@ -46,20 +46,20 @@ int durations[] = {
 }
   
 
-void idleMelody(){
+void idleMelody(){           //vaihtoehtoinen idlemusiikki
 
-  static int indexer=0;
-  static unsigned long currentMillis = millis();
-  static bool noteStatus=false;
+  static int indexer=0;                           //käytetään soittamaan taulukossa olevia taajuuksia
+  static unsigned long currentMillis = millis();  //aikavertailua varten jolla saadaan jaksotettua taajuuksien soittoa
+  static bool noteStatus=false;                   //Soiko joku nuotti vai ei
 
 /*  int idleMelody[] = {
-  523, 659, 784, 1047,   // C5, E5, G5, C6
+  523, 659, 784, 1047,   // C5, E5, G5, C6        //vaihtoehtoinen idlemusiikki
   988, 784, 880, 698,    // B5, G5, A5, F5
   659, 523, 587, 784     // E5, C5, D5, G5
 };*/  
 //int idleMelody[] = {523, 659, 784, 659, 587, 698, 880, 698}; //odotus musiikki kun peli on odottaa käynnistystä
 
-int idleMelody[] = {
+int idleMelody[] = {                              //idlemusiikin taajuus taulukko
   523, 587, 659, 698,  // C5, D5, E5, F5
   659, 587, 523, 587,  // E5, D5, C5, D5
   523, 659, 698, 784,  // C5, E5, F5, G5
@@ -68,71 +68,19 @@ int idleMelody[] = {
 
 
 if(noteStatus==false){
-  tone(A0, idleMelody[indexer]);
-  noteStatus=true;
-  currentMillis=millis();
+  tone(A0, idleMelody[indexer]);                 //soitetaan nuotti jos notestatus = false
+  noteStatus=true;                               //Asetetaan notestatus true koska nuottia soitetaan
+  currentMillis=millis();                        //tallennetaan muuttujaan millis aika
 }
-if(noteStatus==true && millis()-currentMillis>=250){
-  noTone(A0);
-  indexer++;
-  noteStatus=false;
-    if(indexer>=sizeof(idleMelody)/sizeof(idleMelody[0])){
-    indexer=0;
+if(noteStatus==true && millis()-currentMillis>=250){  //vertaillaan onko nuottia soitettu riittävän kauan
+  noTone(A0);                                         //lopetetaan soittaminen
+  indexer++;                                          //mennään seuraavaan alkioon
+  noteStatus=false;                                   //asetetaan nuotin soitto tilaan false
+  
+    if(indexer>=sizeof(idleMelody)/sizeof(idleMelody[0])){  //jos kaikki taulukon nuotit on soitettu, 
+    indexer=0;                                               //nollataan indexer jotta idlemusiikki alkaa alusta
     }
   }
-}
-void idleMelody2(){
-int savelienTaajuudet[26] = {
-  330, 294, 262, 294, 330,
-  330, 330, 294, 294, 294,
-  330, 392, 392, 330, 294,
-  262, 294, 330, 330, 330,
-  294, 294, 330, 294, 262,
-  0};
-
-  // Yksittäisten sävelen soinnin kesto
-  int savelienKestot[26] = {  
-  450,150,300,300,300,
-  300,300,300,300,300,
-  300,300,300,450,150,
-  300,300,300,300,300,
-  300,300,300,300,300,
-  1000};
-
-  // Yksittäisten sävelien välit
-  int savelienValit[26] = {  
-  60,60,60,60,60,
-  60,300,60,60,300,
-  60,60,300,60,60,
-  60,60,60,60,300,
-  60,60,60,60,60,
-  1000};
-
-  unsigned long musiikinTahdistus = millis() - breakTimer1;
-
-  int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
-  int savelienValienSummaus[26];
-  int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);
-  int summa = 0;
-  for (int i = 0; i < taulukonKoko;i++) {
-    summa = summa + savelienValit[i] + savelienKestot[i];
-    savelienValienSummaus[i] = summa;
-  }
-
-
-  if (musiikinTahdistus > 0 && musiikinTahdistus < savelienValienSummaus[0] && savel == 0) {
-      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
-      savel++;
-  } 
-  else if (musiikinTahdistus > savelienValienSummaus[savel - 1] && musiikinTahdistus < savelienValienSummaus[savel] && savel > 0 && savel < 25) {
-      tone(A0, savelienTaajuudet[savel], savelienKestot[savel]);
-      savel++;
-  } 
-  else if (musiikinTahdistus > (savelienValienSummaus[savel - 1] + tauko) && musiikinTahdistus < (savelienValienSummaus[savel] + tauko) && savel == 25) {
-      savel = 0;
-      breakTimer1 = millis();
-  }
-
 }
 
 

@@ -14,8 +14,12 @@ käyttäjä syöttää parametrinä esimerkiksi ledin numeron ja sitä vastaava 
 Funktiossa on lisäksi tone 4 ja 5 
 */
 void playTone(byte);
+
+/*
+voidaan käyttää idlemusiikin toistamiseen
+*/
 void idleMelody(void);
-void idleMelody2(void);
+
 
 
 

@@ -42,6 +42,13 @@ void checkGame(byte);
   the Game.
 */
 void startTheGame(void);
+
+
+/*
+gameBreak subroutine is used to play idlemusic and
+showing previous round score and highscore while waiting
+for player to start the game again
+*/
 void gameBreak(void);
 
 
