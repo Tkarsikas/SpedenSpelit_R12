@@ -181,7 +181,7 @@ initializeTimer();                                                        // Alu
 
 void gameBreak(void) {
 
-  int ruudunPaivitus = 2000; // Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
+  int ruudunPaivitus = 2000; 											// Ruudunpäivityksen kierron kesto. Puolet näkyy highscore, puolet score
 
   // Päivitetään pisteet & highscore 1000 ms välein kun peli ei ole aktiivinen
   if ((millis() - breakTimer) % ruudunPaivitus < ruudunPaivitus / 2) {
@@ -190,27 +190,24 @@ void gameBreak(void) {
   if ((millis() - breakTimer) % ruudunPaivitus > ruudunPaivitus / 2) {
     showResult(highscore);
   }
-
-  // Soitetun kappaleen taajuudet
-  int savelienTaajuudet[26] = {
+  
+  int savelienTaajuudet[26] = {											// Soitetun kappaleen taajuudet
   330, 294, 262, 294, 330,
   330, 330, 294, 294, 294,
   330, 392, 392, 330, 294,
   262, 294, 330, 330, 330,
   294, 294, 330, 294, 262,
   0};
-
-  // Yksittäisten sävelen soinnin kesto
-  int savelienKestot[26] = {  
+ 
+  int savelienKestot[26] = {  											 // Yksittäisten sävelen soinnin kesto
   450,150,300,300,300,
   300,300,300,300,300,
   300,300,300,450,150,
   300,300,300,300,300,
   300,300,300,300,300,
   1000};
-
-  // Yksittäisten sävelien välit
-  int savelienValit[26] = {  
+ 
+  int savelienValit[26] = {  											 // Yksittäisten sävelien välit
   60,60,60,60,60,
   60,300,60,60,300,
   60,60,300,60,60,
@@ -220,11 +217,11 @@ void gameBreak(void) {
 
   unsigned long musiikinTahdistus = millis() - breakTimer;
 
-  int tauko = 1000; // Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
-  int savelienValienSummaus[26];
-  int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);
-  int summa = 0;
-  for (int i = 0; i < taulukonKoko;i++) {
+  int tauko = 1000; 													// Millisekunteina tauko ennen kuin kappale alkaa soimaan uudestaan
+  int savelienValienSummaus[26];										// Taulukkoon tallennetaan summa, kauanko kappaletta on kulunut jokaisen sävelen alkaessa kumulatiivisesti
+  int taulukonKoko = sizeof(savelienKestot) / sizeof(savelienKestot[0]);// Lasketaan taulukon koko, montako säveltä
+  int summa = 0;														// Alustetaan summa-muuttuja, johon summataan sävelen kesto + välit kumulatiivisesti
+  for (int i = 0; i < taulukonKoko;i++) {								// Sävelvälien- sekä sävelienkeston kumulatiivinen summaus ja taulukointi
     summa = summa + savelienValit[i] + savelienKestot[i];
     savelienValienSummaus[i] = summa;
   }
