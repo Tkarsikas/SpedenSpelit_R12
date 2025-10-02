@@ -55,9 +55,9 @@ for (int value =0; value < 16; value++){                  //käydään kaikki lu
   
   for(int led =0; led<4; led++){                          //käydään kaikki ledit läpi 
     digitalWrite(analogPin[led], (value >> led) & 0x01);  //bitin siirrolla asetetaan lukua vastaavasti bitit LOW tai HIGH
-    //delay(50);                                          //esim value 10 >> led 0    0000 1010 siirretään bittejä 0 kertaa oikealle -> (0000 1010) AND 0000 0001 joten 0 led -> LOW  
+    delay(50);                                            //esim value 10 >> led 0    0000 1010 siirretään bittejä 0 kertaa oikealle -> (0000 1010) AND 0000 0001 joten 0 led -> LOW  
     if((value >> led) & 0x01){                            //esim value 10 >> led 1    0000 1010 siirretään bittejä 1 kertaa oikealle -> (0000 0101) AND 0000 0001 joten 1 led -> HIGH 
-      //playTone(led);                                      //esim value 10 >> led 2    0000 1010 siirretään bittejä 2 kertaa oikealle -> (0000 0010) AND 0000 0001 joten 2 led -> LOW              
+      //playTone(led);                                    //esim value 10 >> led 2    0000 1010 siirretään bittejä 2 kertaa oikealle -> (0000 0010) AND 0000 0001 joten 2 led -> LOW              
     }                                                     //esim value 10 >> led 3    0000 1010 siirretään bittejä 3 kertaa oikealle -> (0000 0001) AND 0000 0001 joten 3 led -> HIGH
   }                                                       //palataan ensimmäiseen for looppiin ja käsitellään seuraava luku samalla tavalla
   delay(500);                                              

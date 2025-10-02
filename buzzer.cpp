@@ -32,7 +32,7 @@ int durations[] = {
     case 3:
     tone(A0, 800, 200);
     break;
-    case 4:
+    case 4:                                 //case 4 soitetaan fanfaari
       for (int i = 0; i < 3; i++) {
       tone(A0, fanfare[i], durations[i]);
       delay(250);
